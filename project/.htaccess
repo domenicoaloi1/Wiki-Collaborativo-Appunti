@@ -1,0 +1,7 @@
+# backend/.htaccess
+
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+
+# Altrimenti, manda TUTTO a index.php (anche se il nome corrisponde a una cartella)
+RewriteRule ^ index.php [QSA,L]
