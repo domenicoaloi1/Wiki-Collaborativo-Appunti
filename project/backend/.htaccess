@@ -1,0 +1,19 @@
+# backend/.htaccess
+
+# DISATTIVA il redirect automatico alle cartelle fisiche (es. /appunti -> /appunti/)
+RewriteEngine On
+
+# Questo evita il 301 che rompe il CORS
+DirectorySlash Off
+
+# Impedisce listing dei file se qualcuno accede a una cartella
+Options -Indexes
+
+# Definisce il file di indice predefinito
+DirectoryIndex index.php
+
+# 1. per routing: in caso di ricerca di file esistente (i file di appunti)
+RewriteCond %{REQUEST_FILENAME} !-f
+
+# 2. per routing: manda TUTTO a index.php se non esiste uno specifico file (ignora anche le cartelle)
+RewriteRule ^ index.php [QSA,L]
