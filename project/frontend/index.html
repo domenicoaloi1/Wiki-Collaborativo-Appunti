@@ -12,6 +12,28 @@
 </head>
 <body>
 
+
+	<h1>Stato Connessione Wiki</h1>
+    <div id="status-box" style="padding: 20px; border: 1px solid #ccc;">
+        Attendendo risposta dal backend...
+    </div>
+	
+	<script>
+        // Chiamata diretta al backend sulla porta 8000
+        fetch('http://localhost:8000')
+            .then(response => response.json())
+            .then(data => {
+                const box = document.getElementById('status-box');
+                box.innerHTML = `<strong>${data.message}</strong><br>Ricevuto alle: ${data.timestamp}`;
+                box.style.backgroundColor = '#d4edda';
+            })
+            .catch(error => {
+                document.getElementById('status-box').innerHTML = "ERRORE: Backend non raggiungibile sulla porta 8000";
+                document.getElementById('status-box').style.backgroundColor = '#f8d7da';
+                console.error('Errore:', error);
+            });
+    </script>
+
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
         <div class="container-fluid">
             <a class="navbar-brand fw-bold" href="#">WIKI UNIPR</a>
@@ -21,7 +43,7 @@
             </div>
         </div>
     </nav>
-
+	
     <div class="container-fluid">
         <div class="row">
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-5">
