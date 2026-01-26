@@ -20,7 +20,7 @@ services: # docker-compose.yml
       context: .
       dockerfile: Dockerfile.be
     ports: # PC-HOST:8000 ---> CONTAINER:80
-      - "8000:80" # Qualsiasi richiesta arrivi al mio computer sulla porta 8080, mandala al container sulla sua porta 80
+      - "8000:80"
     volumes:
       - ./backend:/var/www/html
     depends_on:
