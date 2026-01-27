@@ -5,9 +5,7 @@ class AppModel {
         this.apiBase = 'http://localhost:8000';
     }
 
-    /**
-     * RF3: Recupera la collezione dei corsi.
-     */
+    // RF3
     async fetchCorsi() {
         try {
             const response = await fetch(`${this.apiBase}/corsi`);
@@ -17,6 +15,13 @@ class AppModel {
         } catch (error) {
             console.error("Errore fetchCorsi:", error);
         }
+    }
+
+    // RF4
+    async fetchAppunti(courseId) {
+        const response = await fetch(`${this.apiBase}/appunti?corso_id=${courseId}`);
+        if (!response.ok) throw new Error("Errore recupero appunti");
+        return await response.json();
     }
 
 }
