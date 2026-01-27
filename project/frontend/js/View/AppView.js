@@ -1,8 +1,8 @@
 // frontend/js/View/AppView.js
 class AppView {
     constructor() {
-        // Elementi della Sidebar (RF3)
         this.sidebarContainer = document.getElementById('courses-list');
+        this.mainContent = document.getElementById('main-content');
     }
     
     showError(msg) {
@@ -58,6 +58,25 @@ class AppView {
         container.innerHTML = `<h2 class="mb-4 text-primary">Appunti del Corso</h2>${html}`;
     }
 
+    // RF5
+    renderNoteDetail(note, onBackClick) {
+        if (!this.mainContent) return;
 
+        this.mainContent.innerHTML = `
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <button class="btn btn-outline-secondary btn-sm mb-3" id="btn-back">
+                        &larr; Torna alla lista
+                    </button>
+                    <h1 class="h2 text-primary mb-1">${note.titolo}</h1>
+                    <p class="text-muted small mb-4">Caricato il: ${note.data_creazione}</p>
+                    <div class="note-body" style="white-space: pre-wrap; line-height: 1.6;">
+                        ${note.contenuto || "<i>Nessun contenuto disponibile.</i>"}
+                    </div>
+                </div>
+            </div>
+        `;
 
+        document.getElementById('btn-back').onclick = onBackClick;
+    }
 }

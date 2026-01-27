@@ -24,4 +24,11 @@ class AppModel {
         return await response.json();
     }
 
+    // RF5
+    async fetchNoteDetail(noteId) {
+        const response = await fetch(`${this.apiBase}/appunto?id=${noteId}`);
+        if (!response.ok) throw new Error("Errore nel recupero del contenuto");
+        return await response.json();
+    }
+
 }
