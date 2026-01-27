@@ -2,7 +2,6 @@
 // backend/index.php
 
 // REST + CORS
-
 header("Access-Control-Allow-Origin: http://localhost:8080");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
@@ -13,44 +12,52 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     exit;
 }
 
+// Dipendenze (OCCHIO ALL'ORDINE)
+require_once 'Router.php';
+
+require_once 'Model/DatabaseFactory.php';
+
+require_once 'Model/FilterStrategy.php';
+
+require_once 'Model/AbstractGateway.php';
+
+require_once 'Model/NoFilter.php';
+require_once 'Model/CourseFilter.php';
+
+require_once 'Model/CoursesGateway.php';
+require_once 'Model/NotesGateway.php';
+
 // DB
+$dbConfig = [
+    'host' => 'db',
+    'db'   => 'wiki_db',
+    'user' => 'wiki_user',
+    'pass' => 'wiki_password'
+];
+$factory = new DatabaseFactory($dbConfig);
+$pdo = $factory->createConnection();
 
-$host = 'db'; $db = 'wiki_db'; $user = 'wiki_user'; $pass = 'wiki_password';
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8mb4", $user, $pass);
-} catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Database connection failed']);
-    exit;
-}
-
-// RF3
-require_once 'Gateway/CoursesGateway.php';
+// Inizializzazione
 $coursesGateway = new CoursesGateway($pdo);
-// RF4
-require_once 'Gateway/NotesGateway.php';
 $notesGateway = new NotesGateway($pdo);
+$router = new Router();
 
-// Routing DA SPOSTARE IN FILE A PARTE
-$requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$route = rtrim($requestUri, '/');
+// Routing
 
-switch ($route) {
-    // RF3
-    case '/corsi':
-        $data = $coursesGateway->findAll();
-        echo json_encode($data);
-        break;
-    //RF4
-    case '/appunti':
-        $courseId = $_GET['corso_id'] ?? null;
-        if ($courseId) {
-            echo json_encode($notesGateway->findByCourse((int)$courseId));
-        }
-        break;
+$router->add('GET', '/corsi', function() use ($coursesGateway) {
+    echo json_encode($coursesGateway->findAll());
+});
 
-    default:
-        // Rotta di fallback
-        echo json_encode(["status" => "online", "message" => "Wiki API Ready"]);
-        break;
-}
+$router->add('GET', '/appunti', function() use ($notesGateway) {
+    $courseId = (int)($_GET['corso_id'] ?? 0);
+    
+    if ($courseId > 0) {
+        $strategy = new CourseFilter($courseId);
+        echo json_encode($notesGateway->getNotes($strategy));
+    } else {
+        http_response_code(400);
+        echo json_encode(["error" => "ID corso non valido"]);
+    }
+});
+
+$router->dispatch();
