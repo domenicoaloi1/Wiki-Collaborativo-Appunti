@@ -31,4 +31,11 @@ class AppModel {
         return await response.json();
     }
 
+    // RF9
+    async searchNotes(query) {
+        const response = await fetch(`${this.apiBase}/cerca?q=${encodeURIComponent(query)}`);
+        if (!response.ok) throw new Error("Errore nella ricerca");
+        return await response.json();
+    }
+
 }

@@ -32,13 +32,15 @@ class AppView {
         });
     }
 
-    // RF4
-    renderList(notes) {
+    // RF4 + RF9
+    renderList(notes, contextTitle) {
         const container = document.getElementById('main-content');
         if (!container) return;
 
         if (notes.length === 0) {
-            container.innerHTML = '<div class="alert alert-info">Nessun appunto presente per questo corso.</div>';
+            container.innerHTML = `
+                <h2 class="mb-4 text-secondary">${contextTitle}</h2>
+                <div class="alert alert-info">Nessun appunto trovato.</div>`;
             return;
         }
 
@@ -55,7 +57,7 @@ class AppView {
         });
         html += '</ul>';
 
-        container.innerHTML = `<h2 class="mb-4 text-primary">Appunti del Corso</h2>${html}`;
+        container.innerHTML = `<h2 class="mb-4 text-primary">${contextTitle}</h2>${html}`;
     }
 
     // RF5
@@ -78,5 +80,15 @@ class AppView {
         `;
 
         document.getElementById('btn-back').onclick = onBackClick;
+    }
+
+    // RF9
+    bindSearch(handler) {
+        const searchInput = document.getElementById('search-input');
+        if (!searchInput) return;
+
+        searchInput.addEventListener('input', (e) => {
+            handler(e.target.value);
+        });
     }
 }
