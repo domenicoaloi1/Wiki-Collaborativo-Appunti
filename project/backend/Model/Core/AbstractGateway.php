@@ -1,5 +1,5 @@
 <?php
-// backend/Model/AbstractGateway.php
+// backend/Model/Core/AbstractGateway.php
 
 abstract class AbstractGateway {
     protected PDO $pdo;

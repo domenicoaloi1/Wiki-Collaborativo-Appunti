@@ -1,5 +1,5 @@
 <?php
-// backend/Model/FilterStrategy.php
+// backend/Model/Strategy/FilterStrategy.php
 
 interface FilterStrategy {
     /**

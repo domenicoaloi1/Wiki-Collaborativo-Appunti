@@ -1,5 +1,6 @@
 <?php
-// backend/Model/DatabaseFactory.php
+// backend/Model/Core/DatabaseFactory.php
+
 class DatabaseFactory {
     private array $config;
 

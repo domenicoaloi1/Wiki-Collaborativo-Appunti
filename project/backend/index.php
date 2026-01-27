@@ -12,20 +12,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     exit;
 }
 
-// Dipendenze (OCCHIO ALL'ORDINE)
+// LOAD FILES
 require_once 'Router.php';
-
-require_once 'Model/DatabaseFactory.php';
-
-require_once 'Model/FilterStrategy.php';
-
-require_once 'Model/AbstractGateway.php';
-
-require_once 'Model/NoFilter.php';
-require_once 'Model/CourseFilter.php';
-
-require_once 'Model/CoursesGateway.php';
-require_once 'Model/NotesGateway.php';
+spl_autoload_register(function ($class_name) {
+    $dirs = ['Model/Core/', 'Model/Gateway/', 'Model/Strategy/', ''];
+    foreach ($dirs as $dir) {
+        $file = __DIR__ . '/' . $dir . $class_name . '.php';
+        // error_log("Cerco la classe $class_name in: $file");
+        if (file_exists($file)) {
+            require_once $file;
+            return;
+        }
+    }
+});
 
 // DB
 $dbConfig = [
@@ -44,10 +43,12 @@ $router = new Router();
 
 // Routing
 
+// RF3
 $router->add('GET', '/corsi', function() use ($coursesGateway) {
     echo json_encode($coursesGateway->findAll());
 });
 
+// RF4
 $router->add('GET', '/appunti', function() use ($notesGateway) {
     $courseId = (int)($_GET['corso_id'] ?? 0);
     
@@ -57,6 +58,25 @@ $router->add('GET', '/appunti', function() use ($notesGateway) {
     } else {
         http_response_code(400);
         echo json_encode(["error" => "ID corso non valido"]);
+    }
+});
+
+// RF5
+$router->add('GET', '/appunto', function() use ($notesGateway) {
+    $noteId = (int)($_GET['id'] ?? 0);
+    
+    if ($noteId > 0) {
+        $result = $notesGateway->getNotes(new IdFilter($noteId));
+        
+        if (!empty($result)) {
+            echo json_encode($result[0]);
+        } else {
+            http_response_code(404);
+            echo json_encode(["error" => "Appunto non trovato"]);
+        }
+    } else {
+        http_response_code(400);
+        echo json_encode(["error" => "ID non valido o mancante"]);
     }
 });
 

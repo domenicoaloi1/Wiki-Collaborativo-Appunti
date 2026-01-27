@@ -1,6 +1,5 @@
 <?php
-// backend/Model/CourseFilter.php
-require_once 'FilterStrategy.php';
+// backend/Model/Strategy/CourseFilter.php
 
 class CourseFilter implements FilterStrategy {
     private int $courseId;
