@@ -24,19 +24,29 @@ try {
     exit;
 }
 
-// 1. Carichiamo il Gateway
+// RF3
 require_once 'Gateway/CoursesGateway.php';
 $coursesGateway = new CoursesGateway($pdo);
+// RF4
+require_once 'Gateway/NotesGateway.php';
+$notesGateway = new NotesGateway($pdo);
 
-// 2. Routing Minimalista
+// Routing DA SPOSTARE IN FILE A PARTE
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $route = rtrim($requestUri, '/');
 
 switch ($route) {
+    // RF3
     case '/corsi':
-        // RF3: Restituisce la lista dei corsi
         $data = $coursesGateway->findAll();
         echo json_encode($data);
+        break;
+    //RF4
+    case '/appunti':
+        $courseId = $_GET['corso_id'] ?? null;
+        if ($courseId) {
+            echo json_encode($notesGateway->findByCourse((int)$courseId));
+        }
         break;
 
     default:

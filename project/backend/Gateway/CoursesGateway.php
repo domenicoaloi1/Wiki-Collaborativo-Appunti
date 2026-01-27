@@ -8,11 +8,12 @@ class CoursesGateway {
         $this->pdo = $pdo;
     }
 
-    /**
-     * RF3: Recupera tutti i corsi per popolare la sidebar
-     */
+    // RF3 
     public function findAll(): array {
-        $sql = "SELECT id, nome FROM corsi ORDER BY nome ASC";
+        $sql = "SELECT id, nome 
+                FROM corsi 
+                ORDER BY nome ASC";
+        
         $stmt = $this->pdo->query($sql);
         
         // Ritorna un array associativo (es: [['id' => 1, 'nome' => 'Informatica'], ...])
