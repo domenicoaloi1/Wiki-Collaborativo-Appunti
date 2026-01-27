@@ -80,4 +80,15 @@ $router->add('GET', '/appunto', function() use ($notesGateway) {
     }
 });
 
+// RF9
+$router->add('GET', '/cerca', function() use ($notesGateway) {
+    $query = $_GET['q'] ?? '';
+    
+    if (strlen($query) >= 2) {
+        echo json_encode($notesGateway->getNotes(new SearchFilter($query)));
+    } else {
+        echo json_encode([]);
+    }
+});
+
 $router->dispatch();
