@@ -8,8 +8,7 @@ class IdFilter implements FilterStrategy {
         $this->id = $id;
     }
 
-    public function applyFilter(string $sql, array &$params): string {
-        $params['id'] = $this->id;
-        return $sql . " WHERE a.id = :id";
+    public function buildCriteria(QueryObject $query): void {
+        $query->addCriteria(new Criteria('id', '=', $this->id));
     }
 }

@@ -8,8 +8,9 @@ class SearchFilter implements FilterStrategy {
         $this->searchTerm = trim($searchTerm);
     }
 
-    public function applyFilter(string $sql, array &$params): string {
-        $params['query'] = '%' . $this->searchTerm . '%';
-        return $sql . " WHERE a.titolo LIKE :query ORDER BY a.data_creazione DESC";
+    public function buildCriteria(QueryObject $query): void {
+        // La strategia ordina al QueryObject di filtrare per 'titolo' 
+        // usando l'operatore 'LIKE' e i caratteri jolly %
+        $query->addCriteria(new Criteria('titolo', 'LIKE', '%' . $this->searchTerm . '%'));
     }
 }
