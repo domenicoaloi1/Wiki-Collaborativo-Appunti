@@ -34,7 +34,8 @@ $dbConfig = [
     'pass' => 'wiki_password'
 ];
 $factory = new DatabaseFactory($dbConfig);
-$pdo = $factory->createConnection();
+//$pdo = $factory->createConnection();
+$pdo = (new DatabaseFactory($dbConfig))->createConnection();
 
 // Inizializzazione
 $coursesGateway = new CoursesGateway($pdo);
@@ -61,7 +62,7 @@ $router->add('GET', '/appunti', function() use ($notesGateway) {
     }
 });
 
-// RF5
+// RF5: Dettaglio Appunto
 $router->add('GET', '/appunto', function() use ($notesGateway) {
     $noteId = (int)($_GET['id'] ?? 0);
     
@@ -80,14 +81,14 @@ $router->add('GET', '/appunto', function() use ($notesGateway) {
     }
 });
 
-// RF9
+// RF9: Ricerca Appunti
 $router->add('GET', '/cerca', function() use ($notesGateway) {
     $query = $_GET['q'] ?? '';
     
     if (strlen($query) >= 2) {
         echo json_encode($notesGateway->getNotes(new SearchFilter($query)));
     } else {
-        echo json_encode([]);
+        echo json_encode([]); // Lista vuota se la query è troppo corta
     }
 });
 
