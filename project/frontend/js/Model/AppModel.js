@@ -5,7 +5,6 @@ class AppModel {
         this.apiBase = 'http://localhost:8000';
     }
 
-    // RF3
     async fetchCorsi() {
         try {
             const response = await fetch(`${this.apiBase}/corsi`);
@@ -17,25 +16,27 @@ class AppModel {
         }
     }
 
-    // RF4
-    async fetchAppunti(courseId) {
-        const response = await fetch(`${this.apiBase}/appunti?corso_id=${courseId}`);
+    async fetchArgomenti(courseId) {
+        const response = await fetch(`${this.apiBase}/argomenti?corso_id=${courseId}`);
+        if (!response.ok) throw new Error("Errore recupero argomenti");
+        return await response.json();
+    }
+
+    async fetchAppunti(argomentoId) {
+        const response = await fetch(`${this.apiBase}/appunti?argomento_id=${argomentoId}`);
         if (!response.ok) throw new Error("Errore recupero appunti");
         return await response.json();
     }
 
-    // RF5
     async fetchNoteDetail(noteId) {
         const response = await fetch(`${this.apiBase}/appunto?id=${noteId}`);
         if (!response.ok) throw new Error("Errore nel recupero del contenuto");
         return await response.json();
     }
 
-    // RF9
     async searchNotes(query) {
         const response = await fetch(`${this.apiBase}/cerca?q=${encodeURIComponent(query)}`);
         if (!response.ok) throw new Error("Errore nella ricerca");
         return await response.json();
     }
-
 }
