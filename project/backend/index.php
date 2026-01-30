@@ -34,11 +34,11 @@ $dbConfig = [
     'pass' => 'wiki_password'
 ];
 $factory = new DatabaseFactory($dbConfig);
-//$pdo = $factory->createConnection();
 $pdo = (new DatabaseFactory($dbConfig))->createConnection();
 
 // Inizializzazione
 $coursesGateway = new CoursesGateway($pdo);
+$argomentiGateway = new ArgomentiGateway($pdo);
 $notesGateway = new NotesGateway($pdo);
 $router = new Router();
 
@@ -49,16 +49,28 @@ $router->add('GET', '/corsi', function() use ($coursesGateway) {
     echo json_encode($coursesGateway->findAll());
 });
 
-// RF4
-$router->add('GET', '/appunti', function() use ($notesGateway) {
+$router->add('GET', '/argomenti', function() use ($argomentiGateway) {
     $courseId = (int)($_GET['corso_id'] ?? 0);
     
     if ($courseId > 0) {
         $strategy = new CourseFilter($courseId);
+        echo json_encode($argomentiGateway->getArgomenti($strategy));
+    } else {
+        http_response_code(400);
+        echo json_encode(["error" => "ID corso mancante"]);
+    }
+});
+
+// RF4
+$router->add('GET', '/appunti', function() use ($notesGateway) {
+    $argomentoId = (int)($_GET['argomento_id'] ?? 0);
+    
+    if ($argomentoId > 0) {
+        $strategy = new ArgomentoFilter($argomentoId);
         echo json_encode($notesGateway->getNotes($strategy));
     } else {
         http_response_code(400);
-        echo json_encode(["error" => "ID corso non valido"]);
+        echo json_encode(["error" => "ID argomento mancante"]);
     }
 });
 
