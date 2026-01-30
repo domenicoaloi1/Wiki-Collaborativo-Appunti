@@ -4,3 +4,11 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     overflow-x: hidden;
 }
+
+.dir-badge {
+    font-size: 0.4em;
+    vertical-align: middle;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-left: 10px;
+}
