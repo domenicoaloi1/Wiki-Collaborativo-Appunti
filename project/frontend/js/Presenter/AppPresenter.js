@@ -7,80 +7,66 @@ class AppPresenter {
 
     async init() {
         try {
-            // RF3
             const courses = await this.model.fetchCorsi();
             this.view.renderSidebar(courses, (id) => this.handleCourseSelection(id));
-            
-            // RF9
             this.view.bindSearch((query) => this.handleSearch(query));
         } catch (error) {
             this.view.showError("Errore inizializzazione.");
         }
     }
 
-    attachNoteEvents(currentCourseId) {
+    async handleCourseSelection(courseId) {
+        try {
+            const argomenti = await this.model.fetchArgomenti(courseId);
+            this.view.renderArgomenti(courseId, argomenti, (argId, argNome) => 
+                this.handleArgomentoSelection(argId, argNome)
+            );
+        } catch (e) {
+            this.view.showError("Errore nel caricamento degli argomenti.");
+        }
+    }
+
+    async handleArgomentoSelection(argId, argNome) {
+        try {
+            const notes = await this.model.fetchAppunti(argId);
+            this.view.renderList(notes, `Argomento: ${argNome}`);
+            this.attachNoteEvents(argId, argNome);
+        } catch (e) {
+            this.view.showError("Errore nel caricamento degli appunti.");
+        }
+    }
+
+    attachNoteEvents(argId, argNome) {
         const buttons = document.querySelectorAll('.view-note');
         buttons.forEach(btn => {
             btn.onclick = () => {
                 const noteId = btn.getAttribute('data-id');
-                this.handleViewNote(noteId, currentCourseId);
+                this.handleViewNote(noteId, argId, argNome);
             };
         });
     }
 
-    // RF4 + RF5
-    async handleCourseSelection(courseId) {
+    async handleViewNote(noteId, argId, argNome) {
         try {
-            // RF4
-            const notes = await this.model.fetchAppunti(courseId);
-            
-            const course = this.model.courses.find(c => c.id == courseId);
-            const title = course ? `Appunti di ${course.nome}` : "Appunti del Corso";
-
-            this.view.renderList(notes, title);
-
-            // RF5
-            this.attachNoteEvents(courseId);
-
+            const note = await this.model.fetchNoteDetail(noteId);
+            this.view.renderNoteDetail(note, () => {
+                if (argId) {
+                    this.handleArgomentoSelection(argId, argNome);
+                }
+            });
         } catch (e) {
-            console.error(e);
-            this.view.showError("Errore nel caricamento appunti.");
+            this.view.showError("Errore nel caricamento del dettaglio.");
         }
     }
 
-    // RF9
     async handleSearch(query) {
         if (query.length < 2) return;
-        
         try {
             const results = await this.model.searchNotes(query);
-            
-            const title = `Risultati per: "${query}" <span class="badge bg-secondary" style="font-size:0.5em; vertical-align:middle; margin-left:10px;">RICERCA</span>`;
-            
-            this.view.renderList(results, title);
-            
-            this.attachNoteEvents(null); 
-
+            this.view.renderList(results, `Risultati per: "${query}"`);
+            this.attachNoteEvents(null, null);
         } catch (e) {
             console.error("Errore ricerca:", e);
         }
     }
-
-    // RF5
-    async handleViewNote(noteId, courseId) {
-        try {
-            const note = await this.model.fetchNoteDetail(noteId);
-            
-            this.view.renderNoteDetail(note, () => {
-                if (courseId) {
-                    this.handleCourseSelection(courseId);
-                } else {
-                    document.getElementById('main-content').innerHTML = '<div class="text-center py-5"><h5>Seleziona un corso per continuare</h5></div>';
-                }
-            });
-        } catch (e) {
-            this.view.showError("Impossibile caricare l'appunto.");
-        }
-    }
-    
 }
