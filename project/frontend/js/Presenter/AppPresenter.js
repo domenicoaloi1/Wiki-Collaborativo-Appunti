@@ -7,9 +7,20 @@ class AppPresenter {
 
     async init() {
         try {
+            
             const courses = await this.model.fetchCorsi();
             this.view.renderSidebar(courses, (id) => this.handleCourseSelection(id));
+            
             this.view.bindSearch((query) => this.handleSearch(query));
+            
+            const btnLogin = document.getElementById('btn-login');
+            if (btnLogin) {
+                btnLogin.onclick = () => this.showLogin();
+            }
+
+            this.view.updateNavbar(this.model.currentUser);
+            this.bindNavbarEvents()
+        
         } catch (error) {
             this.view.showError("Errore inizializzazione.");
         }
@@ -68,5 +79,38 @@ class AppPresenter {
         } catch (e) {
             console.error("Errore ricerca:", e);
         }
+    }
+
+    bindNavbarEvents() {
+        const btnLogin = document.getElementById('btn-login');
+        if (btnLogin) btnLogin.onclick = () => this.showLogin();
+
+        const btnLogout = document.getElementById('btn-logout');
+        if (btnLogout) btnLogout.onclick = () => this.handleLogout();
+    }
+
+    showLogin() {
+        this.view.renderLoginForm(async (email, password) => {
+            try {
+                const user = await this.model.login(email, password);
+                // AGGIORNAMENTO DINAMICO:
+                this.view.updateNavbar(user);
+                this.bindNavbarEvents(); // Ricolleghiamo i nuovi tasti (Logout)
+                
+                // Torniamo alla home o mostriamo un messaggio
+                document.getElementById('main-content').innerHTML = `
+                    <div class="alert alert-success">Bentornato, ${user.email}! Ora puoi contribuire alla Wiki.</div>
+                `;
+            } catch (e) {
+                this.view.showError("Credenziali non valide.");
+            }
+        });
+    }
+
+    handleLogout() {
+        this.model.currentUser = null;
+        this.view.updateNavbar(null);
+        this.bindNavbarEvents();
+        location.reload(); // Per pulire le sessioni PHP lato server
     }
 }
