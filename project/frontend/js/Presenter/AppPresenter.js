@@ -1,4 +1,5 @@
 // frontend/js/Presenter/AppPresenter.js
+
 class AppPresenter {
     constructor(model, view) {
         this.model = model;
@@ -7,24 +8,32 @@ class AppPresenter {
 
     async init() {
         try {
-            
             const courses = await this.model.fetchCorsi();
+
             this.view.renderSidebar(courses, (id) => this.handleCourseSelection(id));
             
             this.view.bindSearch((query) => this.handleSearch(query));
             
-            const btnLogin = document.getElementById('btn-login');
-            if (btnLogin) {
-                btnLogin.onclick = () => this.showLogin();
-            }
-
             this.view.updateNavbar(this.model.currentUser);
-            this.bindNavbarEvents()
-        
+            
+            this.bindNavbarEvents();
         } catch (error) {
             this.view.showError("Errore inizializzazione.");
         }
     }
+
+    bindNavbarEvents() {
+        const btnLogin = document.getElementById('btn-login');
+        if (btnLogin) btnLogin.onclick = () => this.showLogin();
+
+        const btnRegister = document.getElementById('btn-register');
+        if (btnRegister) btnRegister.onclick = () => this.showRegister();
+
+        const btnLogout = document.getElementById('btn-logout');
+        if (btnLogout) btnLogout.onclick = () => this.handleLogout();
+    }
+
+    // --- LOGICA CORSI E ARGOMENTI ---
 
     async handleCourseSelection(courseId) {
         try {
@@ -40,83 +49,38 @@ class AppPresenter {
     async handleArgomentoSelection(argId, argNome) {
         try {
             const notes = await this.model.fetchAppunti(argId);
-            this.view.renderList(notes, `Argomento: ${argNome}`);
-            this.attachNoteEvents(argId, argNome);
+            this.view.renderList(notes, `Argomento: ${argNome}`, (noteId) => {
+                this.handleViewNote(noteId, argId, argNome);
+            });
         } catch (e) {
             this.view.showError("Errore nel caricamento degli appunti.");
         }
-    }
-
-    attachNoteEvents(argId, argNome) {
-        const buttons = document.querySelectorAll('.view-note');
-        buttons.forEach(btn => {
-            btn.onclick = () => {
-                const noteId = btn.getAttribute('data-id');
-                this.handleViewNote(noteId, argId, argNome);
-            };
-        });
     }
 
     async handleViewNote(noteId, argId, argNome) {
         try {
             const note = await this.model.fetchNoteDetail(noteId);
             this.view.renderNoteDetail(note, () => {
-                if (argId) {
-                    this.handleArgomentoSelection(argId, argNome);
-                }
+                this.handleArgomentoSelection(argId, argNome);
             });
         } catch (e) {
             this.view.showError("Errore nel caricamento del dettaglio.");
         }
     }
 
-    async handleSearch(query) {
-        if (query.length < 2) return;
-        try {
-            const results = await this.model.searchNotes(query);
-            this.view.renderList(results, `Risultati per: "${query}"`);
-            this.attachNoteEvents(null, null);
-        } catch (e) {
-            console.error("Errore ricerca:", e);
-        }
-    }
-
-    bindNavbarEvents() {
-        const btnLogin = document.getElementById('btn-login');
-        if (btnLogin) btnLogin.onclick = () => this.showLogin();
-
-        const btnLogout = document.getElementById('btn-logout');
-        if (btnLogout) btnLogout.onclick = () => this.handleLogout();
-
-        const btnRegister = document.getElementById('btn-register');
-        if (btnRegister) {
-            btnRegister.onclick = () => this.showRegister();
-        }
-    }
+    // --- LOGICA AUTH ---
 
     showLogin() {
         this.view.renderLoginForm(async (email, password) => {
             try {
                 const user = await this.model.login(email, password);
-                // AGGIORNAMENTO DINAMICO:
                 this.view.updateNavbar(user);
-                this.bindNavbarEvents(); // Ricolleghiamo i nuovi tasti (Logout)
-                
-                // Torniamo alla home o mostriamo un messaggio
-                document.getElementById('main-content').innerHTML = `
-                    <div class="alert alert-success">Bentornato, ${user.email}! Ora puoi contribuire alla Wiki.</div>
-                `;
+                this.bindNavbarEvents();
+                this.view.renderList([], "Bentornato!"); 
             } catch (e) {
                 this.view.showError("Credenziali non valide.");
             }
         });
-    }
-
-    handleLogout() {
-        this.model.currentUser = null;
-        this.view.updateNavbar(null);
-        this.bindNavbarEvents();
-        location.reload(); // Per pulire le sessioni PHP lato server
     }
 
     showRegister() {
@@ -127,17 +91,31 @@ class AppPresenter {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
-
-                if (!response.ok) {
-                    const err = await response.json();
-                    throw new Error(err.error || "Errore registrazione");
-                }
-
-                alert("Registrazione completata! Ora puoi effettuare il login.");
-                this.showLogin(); // Portiamo l'utente direttamente al login
+                if (!response.ok) throw new Error("Registrazione fallita");
+                alert("Registrazione ok! Ora accedi.");
+                this.showLogin();
             } catch (e) {
                 this.view.showError(e.message);
             }
         });
+    }
+
+    handleLogout() {
+        this.model.currentUser = null;
+        this.view.updateNavbar(null);
+        this.bindNavbarEvents();
+        location.reload(); 
+    }
+
+    async handleSearch(query) {
+        if (query.length < 2) return;
+        try {
+            const results = await this.model.searchNotes(query);
+            this.view.renderList(results, `Risultati per: "${query}"`, (noteId) => {
+                this.handleViewNote(noteId, null, null);
+            });
+        } catch (e) {
+            console.error("Errore ricerca:", e);
+        }
     }
 }

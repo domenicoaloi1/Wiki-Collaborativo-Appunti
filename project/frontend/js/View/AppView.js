@@ -1,31 +1,55 @@
 // frontend/js/View/AppView.js
+
 class AppView {
     constructor() {
         this.sidebarContainer = document.getElementById('courses-list');
         this.mainContent = document.getElementById('main-content');
     }
-    
-    showError(msg) {
-        alert("Errore: " + msg);
+
+    // --- HELPERS PRIVATI ---
+
+    /**
+     * Crea un elemento DOM in modo granulare
+     */
+    _createElement(tag, className = "", attributes = {}) {
+        const el = document.createElement(tag);
+        if (className) el.className = className;
+        Object.entries(attributes).forEach(([key, value]) => el.setAttribute(key, value));
+        return el;
     }
+
+    /**
+     * Helper per creare gruppi di input Bootstrap
+     */
+    _createInputGroup(labelTitle, id, type, placeholder = "") {
+        const div = this._createElement('div', 'mb-3');
+        const label = this._createElement('label', 'form-label');
+        label.textContent = labelTitle;
+        const input = this._createElement('input', 'form-control', { id, type, required: true, placeholder });
+        div.append(label, input);
+        return div;
+    }
+
+    // --- RENDERING SIDEBAR ---
 
     renderSidebar(courses, onCourseClick) {
         if (!this.sidebarContainer) return;
         this.sidebarContainer.innerHTML = ''; 
 
         courses.forEach(course => {
-            const container = document.createElement('div');
-            container.className = "course-group mb-2";
+            const container = this._createElement('div', 'course-group mb-2');
 
-            const a = document.createElement('a');
-            a.href = "#";
-            a.className = "list-group-item list-group-item-action fw-bold course-link d-flex justify-content-between align-items-center";
-            a.innerHTML = `<span>${course.nome}</span> <small class="text-muted">▾</small>`;
-            a.dataset.id = course.id;
+            const a = this._createElement('a', 'list-group-item list-group-item-action fw-bold course-link d-flex justify-content-between align-items-center', { href: '#' });
+            
+            const span = this._createElement('span');
+            span.textContent = course.nome;
+            
+            const arrow = this._createElement('small', 'text-muted');
+            arrow.textContent = '▾';
 
-            const subList = document.createElement('div');
-            subList.id = `args-course-${course.id}`;
-            subList.className = "list-group list-group-flush ms-3 d-none";
+            a.append(span, arrow);
+
+            const subList = this._createElement('div', 'list-group list-group-flush ms-3 d-none', { id: `args-course-${course.id}` });
 
             a.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -33,8 +57,7 @@ class AppView {
                 onCourseClick(course.id);
             });
 
-            container.appendChild(a);
-            container.appendChild(subList);
+            container.append(a, subList);
             this.sidebarContainer.appendChild(container);
         });
     }
@@ -43,12 +66,11 @@ class AppView {
         const subList = document.getElementById(`args-course-${courseId}`);
         if (!subList) return;
 
-        subList.innerHTML = '';
+        subList.innerHTML = ''; 
         argomenti.forEach(arg => {
-            const a = document.createElement('a');
-            a.href = "#";
-            a.className = "list-group-item list-group-item-action py-1 small";
+            const a = this._createElement('a', 'list-group-item list-group-item-action py-1 small', { href: '#' });
             a.textContent = arg.nome;
+            
             a.onclick = (e) => {
                 e.preventDefault();
                 onArgomentoClick(arg.id, arg.nome);
@@ -57,47 +79,149 @@ class AppView {
         });
     }
 
-    renderList(notes, contextTitle) {
+    // --- RENDERING MAIN CONTENT ---
+
+    renderList(notes, contextTitle, onNoteClick) {
         if (!this.mainContent) return;
+        this.mainContent.innerHTML = '';
+
+        const h2 = this._createElement('h2', 'mb-4 text-primary');
+        h2.textContent = contextTitle;
 
         if (notes.length === 0) {
-            this.mainContent.innerHTML = `
-                <h2 class="mb-4 text-secondary">${contextTitle}</h2>
-                <div class="alert alert-info">Nessun appunto trovato per questo argomento.</div>`;
+            const alert = this._createElement('div', 'alert alert-info');
+            alert.textContent = "Nessun appunto trovato.";
+            this.mainContent.append(h2, alert);
             return;
         }
 
-        let html = '<ul class="list-group shadow-sm">';
+        const ul = this._createElement('ul', 'list-group shadow-sm');
         notes.forEach(note => {
-            html += `
-                <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                    <div>
-                        <h5 class="mb-1">${note.titolo}</h5>
-                        <small class="text-muted">Creato il: ${note.data_creazione}</small>
-                    </div>
-                    <button class="btn btn-primary btn-sm view-note" data-id="${note.id}">Leggi</button>
-                </li>`;
-        });
-        html += '</ul>';
+            const li = this._createElement('li', 'list-group-item d-flex justify-content-between align-items-center p-3');
+            
+            const infoDiv = this._createElement('div');
+            const h5 = this._createElement('h5', 'mb-1');
+            h5.textContent = note.titolo;
+            const small = this._createElement('small', 'text-muted');
+            small.textContent = `Creato il: ${note.data_creazione}`;
+            infoDiv.append(h5, small);
 
-        this.mainContent.innerHTML = `<h2 class="mb-4 text-primary">${contextTitle}</h2>${html}`;
+            const btn = this._createElement('button', 'btn btn-primary btn-sm');
+            btn.textContent = "Leggi";
+            btn.onclick = () => onNoteClick(note.id);
+
+            li.append(infoDiv, btn);
+            ul.appendChild(li);
+        });
+
+        this.mainContent.append(h2, ul);
     }
 
     renderNoteDetail(note, onBackClick) {
         if (!this.mainContent) return;
-        this.mainContent.innerHTML = `
-            <div class="card border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <button class="btn btn-outline-secondary btn-sm mb-3" id="btn-back">&larr; Torna alla lista</button>
-                    <h1 class="h2 text-primary mb-1">${note.titolo}</h1>
-                    <p class="text-muted small mb-4">Caricato il: ${note.data_creazione}</p>
-                    <div class="note-body" style="white-space: pre-wrap; line-height: 1.6;">
-                        ${note.contenuto || "<i>Nessun contenuto disponibile.</i>"}
-                    </div>
-                </div>
-            </div>
-        `;
-        document.getElementById('btn-back').onclick = onBackClick;
+        this.mainContent.innerHTML = '';
+
+        const card = this._createElement('div', 'card border-0 shadow-sm');
+        const cardBody = this._createElement('div', 'card-body p-4');
+
+        const btnBack = this._createElement('button', 'btn btn-outline-secondary btn-sm mb-3');
+        btnBack.textContent = '← Torna alla lista';
+        btnBack.onclick = onBackClick;
+
+        const h1 = this._createElement('h1', 'h2 text-primary mb-1');
+        h1.textContent = note.titolo;
+
+        const meta = this._createElement('p', 'text-muted small mb-4');
+        meta.textContent = `Caricato il: ${note.data_creazione}`;
+
+        const body = this._createElement('div', 'note-body', { style: 'white-space: pre-wrap; line-height: 1.6;' });
+        body.textContent = note.contenuto || "Nessun contenuto disponibile.";
+
+        cardBody.append(btnBack, h1, meta, body);
+        card.appendChild(cardBody);
+        this.mainContent.appendChild(card);
+    }
+
+    // --- FORMS (LOGIN & REGISTER) ---
+
+    renderLoginForm(onSubmit) {
+        this._renderFormCard("Accedi al Sistema", "login-form", [
+            { label: "Email", id: "login-email", type: "email" },
+            { label: "Password", id: "login-password", type: "password" }
+        ], "Entra", "btn-primary", onSubmit);
+    }
+
+    renderRegisterForm(onSubmit) {
+        this._renderFormCard("Crea un Account", "register-form", [
+            { label: "Email Universitaria", id: "reg-email", type: "email", placeholder: "nome@studenti.unipr.it" },
+            { label: "Password", id: "reg-password", type: "password" }
+        ], "Registrati", "btn-success", onSubmit);
+    }
+
+    /**
+     * Helper generico per renderizzare le card dei form
+     */
+    _renderFormCard(titleText, formId, fields, btnText, btnClass, onSubmit) {
+        if (!this.mainContent) return;
+        this.mainContent.innerHTML = '';
+
+        const row = this._createElement('div', 'row justify-content-center py-5');
+        const col = this._createElement('div', 'col-md-5');
+        const card = this._createElement('div', 'card shadow border-0');
+        const cardBody = this._createElement('div', 'card-body p-5');
+        
+        const title = this._createElement('h3', 'text-center mb-4');
+        title.textContent = titleText;
+
+        const form = this._createElement('form', '', { id: formId });
+
+        fields.forEach(f => {
+            form.appendChild(this._createInputGroup(f.label, f.id, f.type, f.placeholder));
+        });
+
+        const submitBtn = this._createElement('button', `btn ${btnClass} w-100`, { type: 'submit' });
+        submitBtn.textContent = btnText;
+
+        form.appendChild(submitBtn);
+        cardBody.append(title, form);
+        card.appendChild(cardBody);
+        col.appendChild(card);
+        row.appendChild(col);
+        this.mainContent.appendChild(row);
+
+        form.onsubmit = (e) => {
+            e.preventDefault();
+            const values = fields.map(f => document.getElementById(f.id).value);
+            onSubmit(...values);
+        };
+    }
+
+    updateNavbar(user) {
+        const btnContainer = document.querySelector('.navbar .d-flex');
+        if (!btnContainer) return;
+        btnContainer.innerHTML = '';
+
+        if (user) {
+            const userInfo = this._createElement('span', 'navbar-text me-3 text-light');
+            userInfo.textContent = `👤 ${user.email} (${user.ruolo})`;
+            
+            const btnLogout = this._createElement('button', 'btn btn-outline-light btn-sm', { id: 'btn-logout' });
+            btnLogout.textContent = 'Logout';
+            
+            btnContainer.append(userInfo, btnLogout);
+        } else {
+            const btnLogin = this._createElement('button', 'btn btn-outline-light me-2', { id: 'btn-login' });
+            btnLogin.textContent = 'Login';
+            
+            const btnReg = this._createElement('button', 'btn btn-primary', { id: 'btn-register' });
+            btnReg.textContent = 'Registrati';
+            
+            btnContainer.append(btnLogin, btnReg);
+        }
+    }
+
+    showError(msg) {
+        alert("Errore: " + msg);
     }
 
     bindSearch(handler) {
@@ -105,91 +229,5 @@ class AppView {
         if (searchInput) {
             searchInput.addEventListener('input', (e) => handler(e.target.value));
         }
-    }
-    
-    renderLoginForm(onSubmit) {
-        this.mainContent.innerHTML = `
-            <div class="row justify-content-center">
-                <div class="col-md-6">
-                    <div class="card shadow-sm">
-                        <div class="card-body p-5">
-                            <h2 class="text-center mb-4">Accedi a Wiki UNIPR</h2>
-                            <form id="login-form">
-                                <div class="mb-3">
-                                    <label class="form-label">Email</label>
-                                    <input type="email" id="login-email" class="form-control" required placeholder="email">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Password</label>
-                                    <input type="password" id="login-password" class="form-control" required placeholder="password">
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100">Entra</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        document.getElementById('login-form').onsubmit = (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            onSubmit(email, password);
-        };
-    }
-    
-    updateNavbar(user) {
-        const btnContainer = document.querySelector('.navbar .d-flex');
-        if (!btnContainer) return;
-
-        if (user) {
-            // Utente Loggato: Mostra Email e Logout
-            btnContainer.innerHTML = `
-                <span class="navbar-text me-3 text-light">
-                    <i class="bi bi-person-circle"></i> ${user.email} (${user.ruolo})
-                </span>
-                <button class="btn btn-outline-light btn-sm" id="btn-logout">Logout</button>
-            `;
-        } else {
-            // Utente Anonimo: Mostra Login e Registrati
-            btnContainer.innerHTML = `
-                <button class="btn btn-outline-light me-2" id="btn-login">Login</button>
-                <button class="btn btn-primary" id="btn-register">Registrati</button>
-            `;
-        }
-    }
-
-    renderRegisterForm(onSubmit) {
-        this.mainContent.innerHTML = `
-            <div class="row justify-content-center py-5">
-                <div class="col-md-5">
-                    <div class="card shadow-sm border-0">
-                        <div class="card-body p-5">
-                            <h3 class="text-center mb-4">Crea un Account</h3>
-                            <form id="register-form">
-                                <div class="mb-3">
-                                    <label class="form-label">Email Universitaria</label>
-                                    <input type="email" id="reg-email" class="form-control" required placeholder="nome@studenti.unipr.it">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Password</label>
-                                    <input type="password" id="reg-password" class="form-control" required minlength="6">
-                                </div>
-                                <button type="submit" class="btn btn-success w-100">Registrati</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        document.getElementById('register-form').onsubmit = (e) => {
-            e.preventDefault();
-            onSubmit(
-                document.getElementById('reg-email').value,
-                document.getElementById('reg-password').value
-            );
-        };
     }
 }
