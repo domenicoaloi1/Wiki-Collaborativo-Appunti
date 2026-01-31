@@ -1,11 +1,11 @@
 <?php
 // backend/index.php
-
+session_start();
 // REST + CORS
 header("Access-Control-Allow-Origin: http://localhost:8080");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     http_response_code(200);
@@ -40,6 +40,7 @@ $pdo = (new DatabaseFactory($dbConfig))->createConnection();
 $coursesGateway = new CoursesGateway($pdo);
 $argomentiGateway = new ArgomentiGateway($pdo);
 $notesGateway = new NotesGateway($pdo);
+$userGateway = new UserGateway($pdo);
 $router = new Router();
 
 // Routing
@@ -101,6 +102,59 @@ $router->add('GET', '/cerca', function() use ($notesGateway) {
         echo json_encode($notesGateway->getNotes(new SearchFilter($query)));
     } else {
         echo json_encode([]); // Lista vuota se la query è troppo corta
+    }
+});
+
+$router->add('POST', '/login', function() use ($userGateway) {
+    // Leggiamo i dati JSON dal corpo della richiesta
+    $data = json_decode(file_get_contents('php://input'), true);
+    $email = $data['email'] ?? '';
+    $password = $data['password'] ?? '';
+
+    $user = $userGateway->getUser(new EmailFilter($email));
+
+    if ($user && password_verify($password, $user['password'])) {
+        // Login successo! Ritorna i dati dell'utente (senza la password)
+        unset($user['password']);
+        echo json_encode([
+            "status" => "success",
+            "user" => $user
+        ]);
+    } else {
+        http_response_code(401);
+        echo json_encode(["error" => "Credenziali non valide"]);
+    }
+});
+
+$router->add('POST', '/logout', function() {
+    session_start();
+    session_destroy();
+    echo json_encode(["status" => "success"]);
+});
+
+$router->add('POST', '/register', function() use ($userGateway) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    
+    if (empty($data['email']) || empty($data['password'])) {
+        http_response_code(400);
+        echo json_encode(["error" => "Dati incompleti"]);
+        return;
+    }
+
+    // Hashing della password
+    $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
+
+    try {
+        $userId = $userGateway->register([
+            'email'    => $data['email'],
+            'password' => $hashedPassword,
+            'ruolo'    => 'studente' // Default per i nuovi iscritti
+        ]);
+
+        echo json_encode(["status" => "success", "id" => $userId]);
+    } catch (PDOException $e) {
+        http_response_code(409); // Conflict (es. email già esistente)
+        echo json_encode(["error" => "Email già registrata"]);
     }
 });
 

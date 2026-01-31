@@ -2,8 +2,16 @@
 
 -- Dati di test
 
+-- Utenti (Pass: password)
+INSERT IGNORE INTO utenti (id, email, password, ruolo) VALUES 
+(1, 'admin@wiki.it', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'amministratore'),
+(2, 'studente@wiki.it', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'studente');
+
 -- Corsi
-INSERT IGNORE INTO corsi (id, nome) VALUES (1, 'Informatica'), (2, 'Matematica'), (3, 'Fisica');
+INSERT IGNORE INTO corsi (id, nome) VALUES 
+(1, 'Informatica'), 
+(2, 'Matematica'), 
+(3, 'Fisica');
 
 -- Argomenti per Informatica
 INSERT IGNORE INTO argomenti (id, nome, corso_id) VALUES 
@@ -17,8 +25,7 @@ INSERT IGNORE INTO argomenti (id, nome, corso_id) VALUES
 -- Argomenti per Fisica
 INSERT IGNORE INTO argomenti (id, nome, corso_id) VALUES 
 (4, 'Meccanica', 3),
-(5, 'Termodinamica', 3)
-;
+(5, 'Termodinamica', 3);
 
 -- Appunti legati agli argomenti
 INSERT IGNORE INTO appunti (id, titolo, argomento_id, utente_id, file_path) VALUES 

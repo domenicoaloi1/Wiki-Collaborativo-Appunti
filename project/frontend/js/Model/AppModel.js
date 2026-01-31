@@ -39,4 +39,18 @@ class AppModel {
         if (!response.ok) throw new Error("Errore nella ricerca");
         return await response.json();
     }
+
+    async login(email, password) {
+        const response = await fetch(`${this.apiBase}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        if (!response.ok) throw new Error("Credenziali non valide");
+        
+        const data = await response.json();
+        this.currentUser = data.user; // Salviamo l'utente nel modello
+        return data.user;
+    }
 }
