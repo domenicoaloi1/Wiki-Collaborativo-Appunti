@@ -87,6 +87,11 @@ class AppPresenter {
 
         const btnLogout = document.getElementById('btn-logout');
         if (btnLogout) btnLogout.onclick = () => this.handleLogout();
+
+        const btnRegister = document.getElementById('btn-register');
+        if (btnRegister) {
+            btnRegister.onclick = () => this.showRegister();
+        }
     }
 
     showLogin() {
@@ -112,5 +117,27 @@ class AppPresenter {
         this.view.updateNavbar(null);
         this.bindNavbarEvents();
         location.reload(); // Per pulire le sessioni PHP lato server
+    }
+
+    showRegister() {
+        this.view.renderRegisterForm(async (email, password) => {
+            try {
+                const response = await fetch(`${this.model.apiBase}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.error || "Errore registrazione");
+                }
+
+                alert("Registrazione completata! Ora puoi effettuare il login.");
+                this.showLogin(); // Portiamo l'utente direttamente al login
+            } catch (e) {
+                this.view.showError(e.message);
+            }
+        });
     }
 }

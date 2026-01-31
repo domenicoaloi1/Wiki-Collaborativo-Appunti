@@ -159,4 +159,37 @@ class AppView {
             `;
         }
     }
+
+    renderRegisterForm(onSubmit) {
+        this.mainContent.innerHTML = `
+            <div class="row justify-content-center py-5">
+                <div class="col-md-5">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body p-5">
+                            <h3 class="text-center mb-4">Crea un Account</h3>
+                            <form id="register-form">
+                                <div class="mb-3">
+                                    <label class="form-label">Email Universitaria</label>
+                                    <input type="email" id="reg-email" class="form-control" required placeholder="nome@studenti.unipr.it">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Password</label>
+                                    <input type="password" id="reg-password" class="form-control" required minlength="6">
+                                </div>
+                                <button type="submit" class="btn btn-success w-100">Registrati</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('register-form').onsubmit = (e) => {
+            e.preventDefault();
+            onSubmit(
+                document.getElementById('reg-email').value,
+                document.getElementById('reg-password').value
+            );
+        };
+    }
 }

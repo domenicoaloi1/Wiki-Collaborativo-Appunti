@@ -17,4 +17,17 @@ class UserGateway extends AbstractGateway {
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result ?: null; // Ritorna null se l'utente non esiste
     }
+    
+    public function register(array $data): int {
+        $sql = "INSERT INTO utenti (email, password, ruolo) VALUES (:email, :password, :ruolo)";
+        $stmt = $this->pdo->prepare($sql);
+        
+        $stmt->execute([
+            ':email'    => $data['email'],
+            ':password' => $data['password'], // Hash già generato
+            ':ruolo'    => $data['ruolo'] ?? 'studente'
+        ]);
+
+        return (int)$this->pdo->lastInsertId();
+    }
 }

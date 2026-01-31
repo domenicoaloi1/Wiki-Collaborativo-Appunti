@@ -132,4 +132,30 @@ $router->add('POST', '/logout', function() {
     echo json_encode(["status" => "success"]);
 });
 
+$router->add('POST', '/register', function() use ($userGateway) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    
+    if (empty($data['email']) || empty($data['password'])) {
+        http_response_code(400);
+        echo json_encode(["error" => "Dati incompleti"]);
+        return;
+    }
+
+    // Hashing della password
+    $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
+
+    try {
+        $userId = $userGateway->register([
+            'email'    => $data['email'],
+            'password' => $hashedPassword,
+            'ruolo'    => 'studente' // Default per i nuovi iscritti
+        ]);
+
+        echo json_encode(["status" => "success", "id" => $userId]);
+    } catch (PDOException $e) {
+        http_response_code(409); // Conflict (es. email già esistente)
+        echo json_encode(["error" => "Email già registrata"]);
+    }
+});
+
 $router->dispatch();
