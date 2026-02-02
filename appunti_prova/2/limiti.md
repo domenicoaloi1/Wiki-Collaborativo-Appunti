@@ -1,4 +1,4 @@
-# Limiti e Continuità
+# Limiti
 [cite_start]*Note dal manuale del Prof. Simone Zuccher* [cite: 185]
 
 [cite_start]Il concetto di limite è uno strumento fondamentale per comprendere il comportamento di una funzione in prossimità di un punto in cui non può essere calcolata[cite: 189]. [cite_start]Attraverso i limiti si definiscono concetti cardine dell'analisi come la **continuità** e la **derivabilità**[cite: 190].
@@ -30,11 +30,6 @@ $$\lim_{x \to x_0} f(x) = l$$
 1.  Si imposta la disequazione $|f(x) - l| [cite_start]< \epsilon$[cite: 282, 283].
 2.  Scomponendo il numeratore $(x-2)(x-3)$, si ottiene $|x-2-1| [cite_start]< \epsilon$[cite: 291, 292].
 3.  Il risultato $|x-3| [cite_start]< \epsilon$ individua proprio l'intorno di $x_0=3$, verificando il limite[cite: 293, 294].
-
-## 4. Continuità
-Una funzione è detta **continua** in un punto $x_0$ se il limite della funzione per $x \to x_0$ coincide con il valore della funzione nel punto stesso:
-$$\lim_{x \to x_0} f(x) = f(x_0)$$
-
 
 ---
 *Fonte: Cap. 7 - Limiti e continuità, Appunti di Matematica, Prof. Simone Zuccher* [cite: 185, 235]
