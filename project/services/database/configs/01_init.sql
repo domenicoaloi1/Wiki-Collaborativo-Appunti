@@ -1,5 +1,10 @@
 -- services/database/configs/01_init.sql
 
+-- Forza la pulizia del database all'avvio
+DROP DATABASE IF EXISTS wiki_db;
+CREATE DATABASE wiki_db;
+USE wiki_db;
+
 -- Struttura del Database
 
 CREATE TABLE IF NOT EXISTS utenti (
