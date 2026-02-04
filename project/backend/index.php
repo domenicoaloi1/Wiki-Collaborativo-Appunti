@@ -184,12 +184,88 @@ $router->add('POST', '/appunto/crea', function() use ($notesGateway, $argomentiG
             $contenutoIniziale,
             $corsoId
         );
-        // Ricordarsi di fare memento
+
         echo json_encode(["status" => "success", "id" => $newId]);
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode(["error" => $e->getMessage()]);
     }
+});
+
+// RF7 & RF8: Salva una nuova versione
+$router->add('POST', '/appunto/versione/salva', function() use ($versionsGateway, $notesGateway, $argomentiGateway) {
+    // salva le versioni ma in un formato di nome che non mi piace
+    $data = json_decode(file_get_contents('php://input'), true);
+    
+    if (empty($data['id']) || empty($data['testo']) || empty($data['utente_id'])) {
+        http_response_code(400);
+        echo json_encode(["error" => "Dati insufficienti per il versionamento"]);
+        return;
+    }
+
+    try {
+        $notes = $notesGateway->getNotes(new IdFilter((int)$data['id']));
+        if (empty($notes)) throw new Exception("Appunto non trovato");
+        $argomentoId = (int)$notes[0]['argomento_id'];
+        $corsoId = $argomentiGateway->getCorsoIdByArgomento(new IdFilter($argomentoId));
+
+        $noteOriginator = new Note();
+        $noteOriginator->setContent((int)$data['id'], $data['testo'], (int)$data['utente_id']);
+
+        $memento = $noteOriginator->saveToMemento();
+        
+        $versionsGateway->saveVersion($memento, $corsoId);
+
+        echo json_encode(["status" => "success", "message" => "Versione salvata"]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
+});
+
+//RF7 & RF8: Recupera cronologia versioni
+$router->add('GET', '/appunto/storia', function() use ($versionsGateway, $userGateway) {
+    $id = $_GET['id'] ?? null;
+    if (!$id) return;
+    
+    $versions = $versionsGateway->getVersionsList(new AppuntoFilter((int)$id));
+
+    foreach ($versions as &$v) {
+        try {
+            $user = $userGateway->getUser(new IdFilter((int)$v['utente_id']));
+            $v['autore'] = $user ? $user['email'] : 'Utente rimosso';
+        } catch (Exception $e) {
+            $v['autore'] = 'Errore recupero';
+        }
+        // Rimuoviamo l'utente_id dal JSON finale se non serve al frontend
+        unset($v['utente_id']);
+    }
+
+    echo json_encode($versions);
+});
+
+//RF7 & RF8: Ripristina una versione specifica
+$router->add('POST', '/appunto/versione/ripristina', function() use ($versionsGateway) {
+    http_response_code(501);
+    echo json_encode([
+        "success" => false,
+        "error" => "La funzionalità richiesta non è ancora stata implementata sul server."
+    ]);
+    // dice che lo fa ma non lo fa davvero
+    // $data = json_decode(file_get_contents('php://input'), true);
+    // $versioneId = $data['versione_id'] ?? null;
+
+    // try {
+    //     // Iniezione della strategia IdFilter
+    //     $memento = $versionsGateway->getMemento(new IdFilter((int)$versioneId));
+        
+    //     $noteObj = new Note();
+    //     $noteObj->restoreFromMemento($memento);
+    //     echo json_encode(["status" => "success", "testo" => $noteObj->saveToMemento()->getState()['testo']]);
+    // } catch (Exception $e) {
+    //     http_response_code(500);
+    //     echo json_encode(["error" => $e->getMessage()]);
+    // }
 });
 
 $router->dispatch();

@@ -11,16 +11,12 @@ class VersionsGateway extends AbstractGateway {
         $strategy->buildCriteria($qo);
 
         $params = [];
-        // Prepariamo la query con il JOIN per avere l'email dell'autore
-        $baseSql = "SELECT v.id, v.data_modifica, u.email as autore 
-                    FROM versioni v 
-                    JOIN utenti u ON v.utente_id = u.id";
+        // QUERY PURA: Solo sulla tabella 'versioni'
+        $baseSql = "SELECT id, data_modifica, utente_id FROM versioni";
         
-        // buildWhereClause aggiungerà " WHERE v.appunto_id = :p0"
-        // Nota: se la strategia usa 'appunto_id', buildWhereClause funzionerà correttamente
         $where = $this->buildWhereClause($qo, $params);
         
-        $stmt = $this->pdo->prepare($baseSql . $where . " ORDER BY v.data_modifica DESC");
+        $stmt = $this->pdo->prepare($baseSql . $where . " ORDER BY data_modifica DESC");
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
