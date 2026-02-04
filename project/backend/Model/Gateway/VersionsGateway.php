@@ -71,4 +71,36 @@ class VersionsGateway extends AbstractGateway implements IVersionsGateway {
         $sql = "INSERT INTO versioni (appunto_id, utente_id, testo_percorso) VALUES (?, ?, ?)";
         $this->pdo->prepare($sql)->execute([$appuntoId, $utenteId, $path]);
     }
+
+    public function getVersions(FilterStrategy $strategy): array {
+        throw new Exception("Forse non necessaria");
+        $qo = new QueryObject();
+        $strategy->buildCriteria($qo);
+
+        $params = [];
+        $baseSql = "SELECT * FROM versioni";
+        
+        $where = $this->buildWhereClause($qo, $params);
+        
+        $stmt = $this->pdo->prepare($baseSql . $where);
+        $stmt->execute($params);
+        $versions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($versions as $version) {
+            if (!empty($version['file_path'])) {
+                // VersionsGateway è in Model/Gateway/, quindi salgo di due livelli (../../)
+                $fullPath = __DIR__ . '/../../' . $version['file_path'];
+                if (file_exists($fullPath)) {
+                    $version['contenuto'] = file_get_contents($fullPath);
+                } else {
+                    $version['contenuto'] = "Errore: Il file non è stato trovato nel percorso " . $version['file_path'];
+                }
+            } else {
+                $note['contenuto'] = "Nessun percorso file associato a questo appunto.";
+            }
+
+        }
+
+        return $versions;
+    }
 }

@@ -26,6 +26,10 @@ class VersionsGatewayProxy implements IVersionsGateway {
         $this->unauthorized();
     }
 
+    public function getVersions(FilterStrategy $strategy): array{
+        return $this->realGateway->getVersions($strategy);
+    }
+
     private function unauthorized(): void {
         throw new Exception("Accesso negato: non hai i permessi per archiviare nuove versioni.");
     }

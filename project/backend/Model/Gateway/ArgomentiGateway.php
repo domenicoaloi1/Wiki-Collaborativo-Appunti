@@ -38,11 +38,11 @@ class ArgomentiGateway extends AbstractGateway implements IArgomentiGateway{
         return (int)$res;
     }
 
-    public function createArgomento(string $nome, string $descrizione): int{
+    public function createArgomento(int $corsoId, string $nome): int {
         throw new Exception("Not Implemented Yet");
     }
 
-    public function updateArgomento(int $id, string $nome, string $descrizione): void{
+    public function updateArgomento(int $id, string $nome): void {
         throw new Exception("Not Implemented Yet");
     }
 
