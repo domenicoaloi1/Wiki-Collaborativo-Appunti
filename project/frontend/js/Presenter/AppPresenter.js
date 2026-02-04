@@ -160,20 +160,22 @@ class AppPresenter {
 
     async handlePreviewVersion(versioneId, dataModifica) {
         try {
-            const testo = await this.model.restoreVersion(versioneId);
-            this.view.showVersionPreview(testo.testo, dataModifica);
+            const res = await this.model.fetchVersionPreview(versioneId);
+            this.view.showVersionPreview(res.testo, dataModifica);
         } catch (e) {
             this.view.showError("Impossibile caricare l'anteprima della versione.");
         }
     }
 
     async handleRestoreVersion(versioneId) {
-        if (!confirm("Sei sicuro di voler ripristinare questa versione? Il testo attuale verrà sostituito.")) return;
+        if (!confirm("Sei sicuro di voler ripristinare questa versione? Il testo attuale verrà archiviato e sostituito.")) return;
         try {
-            const result = await this.model.restoreVersion(versioneId);
-            // Aggiorniamo la textarea con il testo ripristinato
+            const result = await this.model.restoreVersion(versioneId, this.model.currentUser.id);
+            
             const textarea = document.querySelector('textarea');
             if (textarea) textarea.value = result.testo;
+            
+            this.view.hideHistory();
             alert("Versione ripristinata correttamente!");
         } catch (e) {
             this.view.showError(e.message);

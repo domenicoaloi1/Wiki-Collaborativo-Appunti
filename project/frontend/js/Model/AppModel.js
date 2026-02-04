@@ -92,11 +92,17 @@ class AppModel {
         return await response.json();
     }
 
-    async restoreVersion(versioneId) {
+    async fetchVersionPreview(versioneId) {
+        const response = await fetch(`${this.apiBase}/appunto/versione/visualizza?versione_id=${versioneId}`);
+        if (!response.ok) throw new Error("Errore nel recupero dell'anteprima");
+        return await response.json();
+    }
+
+    async restoreVersion(versioneId, utenteId) {
         const response = await fetch(`${this.apiBase}/appunto/versione/ripristina`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ versione_id: versioneId })
+            body: JSON.stringify({ versione_id: versioneId, utente_id: utenteId })
         });
         if (!response.ok) throw new Error("Errore nel ripristino della versione");
         return await response.json();

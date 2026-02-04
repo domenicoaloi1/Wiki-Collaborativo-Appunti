@@ -246,28 +246,52 @@ $router->add('GET', '/appunto/storia', function() use ($versionsGateway, $userGa
     echo json_encode($versions);
 });
 
-//RF7 & RF8: Ripristina una versione specifica
-$router->add('POST', '/appunto/versione/ripristina', function() use ($versionsGateway) {
-    http_response_code(501);
-    echo json_encode([
-        "success" => false,
-        "error" => "La funzionalità richiesta non è ancora stata implementata sul server."
-    ]);
-    // dice che lo fa ma non lo fa davvero
-    // $data = json_decode(file_get_contents('php://input'), true);
-    // $versioneId = $data['versione_id'] ?? null;
+//RF8
+$router->add('GET', '/appunto/versione/visualizza', function() use ($versionsGateway) {
+    $versioneId = $_GET['versione_id'] ?? null;
 
-    // try {
-    //     // Iniezione della strategia IdFilter
-    //     $memento = $versionsGateway->getMemento(new IdFilter((int)$versioneId));
-        
-    //     $noteObj = new Note();
-    //     $noteObj->restoreFromMemento($memento);
-    //     echo json_encode(["status" => "success", "testo" => $noteObj->saveToMemento()->getState()['testo']]);
-    // } catch (Exception $e) {
-    //     http_response_code(500);
-    //     echo json_encode(["error" => $e->getMessage()]);
-    // }
+    try {
+        $memento = $versionsGateway->getMemento(new IdFilter((int)$versioneId));
+        $stato = $memento->getState();
+        echo json_encode(["status" => "success", "testo" => $stato['testo']]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
+});
+
+//RF7: Ripristina una versione specifica
+$router->add('POST', '/appunto/versione/ripristina', function() use ($versionsGateway, $notesGateway, $argomentiGateway) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $versioneId = (int)$data['versione_id'];
+    $utenteId = (int)$data['utente_id'];
+
+    try {
+        $mementoDaRipristinare = $versionsGateway->getMemento(new IdFilter($versioneId));
+        $testoStorico = $mementoDaRipristinare->getState()['testo'];
+        $appuntoId = $mementoDaRipristinare->getState()['id'];
+
+        $noteAttuale = $notesGateway->getNotes(new IdFilter($appuntoId))[0];
+        $corsoId = $argomentiGateway->getCorsoIdByArgomento(new IdFilter((int)$noteAttuale['argomento_id']));
+
+        $mementoStatoCorrente = new NoteMemento(
+            $appuntoId, 
+            $noteAttuale['contenuto'], 
+            $utenteId
+        );
+        $versionsGateway->saveVersion($mementoStatoCorrente, $corsoId);
+
+        $notesGateway->updateNoteContent($appuntoId, $testoStorico);
+
+        echo json_encode([
+            "status" => "success", 
+            "message" => "Versione ripristinata", 
+            "testo" => $testoStorico
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
 });
 
 $router->dispatch();
