@@ -39,7 +39,7 @@ $pdo = (new DatabaseFactory($dbConfig))->createConnection();
 // Inizializzazione
 $coursesGateway = new CoursesGateway($pdo);
 $argomentiGateway = new ArgomentiGateway($pdo);
-$notesGateway = new NotesGateway($pdo);
+$realNotesGateway = new NotesGateway($pdo);
 $versionsGateway = new VersionsGateway($pdo);
 $userGateway = new UserGateway($pdo);
 $router = new Router();
