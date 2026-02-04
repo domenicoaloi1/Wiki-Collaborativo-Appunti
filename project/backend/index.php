@@ -161,4 +161,34 @@ $router->add('POST', '/register', function() use ($userGateway) {
     }
 });
 
+// RF6
+$router->add('POST', '/appunto/crea', function() use ($notesGateway, $argomentiGateway) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    
+    if (empty($data['titolo']) || empty($data['argomento_id']) || empty($data['utente_id'])) {
+        http_response_code(400);
+        echo json_encode(["error" => "Dati mancanti"]);
+        return;
+    }
+
+    try {
+        $corsoId = $argomentiGateway->getCorsoIdByArgomento(new IdFilter($data['argomento_id']));
+
+        $contenutoIniziale = $data['contenuto'] ?? "# " . $data['titolo'];
+
+        $newId = $notesGateway->createNote(
+            $data['argomento_id'], 
+            $data['utente_id'], 
+            $data['titolo'], 
+            $contenutoIniziale,
+            $corsoId
+        );
+        // Ricordarsi di fare memento
+        echo json_encode(["status" => "success", "id" => $newId]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
+});
+
 $router->dispatch();

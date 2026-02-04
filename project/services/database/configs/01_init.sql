@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS appunti (
     titolo VARCHAR(255) NOT NULL,
     argomento_id INT NOT NULL,
     utente_id INT,
-    file_path VARCHAR(255) NOT NULL,
+    file_path VARCHAR(255) DEFAULT NULL,
     data_creazione TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (argomento_id) REFERENCES argomenti(id) ON DELETE CASCADE,
     FOREIGN KEY (utente_id) REFERENCES utenti(id) ON DELETE SET NULL

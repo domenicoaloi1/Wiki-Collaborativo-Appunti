@@ -40,4 +40,36 @@ class NotesGateway extends AbstractGateway {
 
         return $notes;
     }
+
+    /**
+     * RF6: Creazione di un nuovo appunto.
+     * Gestisce l'inserimento nel DB e la creazione del file fisico.
+     */
+    public function createNote(int $argId, int $uId, string $titolo, string $cont, int $corsoId): int {
+        $this->pdo->beginTransaction();
+        try {
+            // Inserimento (file_path DEFAULT NULL)
+            $sql = "INSERT INTO appunti (titolo, argomento_id, utente_id) VALUES (?, ?, ?)";
+            $this->pdo->prepare($sql)->execute([$titolo, $argId, $uId]);
+            $newId = (int)$this->pdo->lastInsertId();
+
+            // Percorso dinamico basato sul corsoId passato
+            $relativePath = "storage/notes/$corsoId/$newId.md";
+            $fullPath = __DIR__ . "/../../" . $relativePath;
+            
+            if (!is_dir(dirname($fullPath))) mkdir(dirname($fullPath), 0777, true);
+            file_put_contents($fullPath, $cont);
+
+            // Aggiornamento percorso
+            $this->pdo->prepare("UPDATE appunti SET file_path = ? WHERE id = ?")
+                    ->execute([$relativePath, $newId]);
+
+            $this->pdo->commit();
+            return $newId;
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
 }

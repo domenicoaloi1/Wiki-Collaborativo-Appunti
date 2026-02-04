@@ -16,4 +16,25 @@ class ArgomentiGateway extends AbstractGateway {
         
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function getCorsoIdByArgomento(FilterStrategy $strategy): int {
+        $qo = new QueryObject();
+        $strategy->buildCriteria($qo);
+
+        $params = [];
+        $baseSql = "SELECT corso_id FROM argomenti";
+        
+        // Generiamo la clausola WHERE usando la strategia (es. IdFilter)
+        $where = $this->buildWhereClause($qo, $params);
+        
+        $stmt = $this->pdo->prepare($baseSql . $where);
+        $stmt->execute($params);
+        $res = $stmt->fetchColumn();
+        
+        if (!$res) {
+            throw new Exception("Impossibile trovare il corso per l'argomento specificato.");
+        }
+        
+        return (int)$res;
+    }
 }
