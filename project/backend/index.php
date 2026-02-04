@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 // LOAD FILES
 require_once 'Router.php';
 spl_autoload_register(function ($class_name) {
-    $dirs = ['Model/Core/', 'Model/Gateway/', 'Model/Strategy/', ''];
+    $dirs = ['Model/Core/', 'Model/Gateway/', 'Model/Strategy/', 'Model/Memento/', ''];
     foreach ($dirs as $dir) {
         $file = __DIR__ . '/' . $dir . $class_name . '.php';
         // error_log("Cerco la classe $class_name in: $file");
