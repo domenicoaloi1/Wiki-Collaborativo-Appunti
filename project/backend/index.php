@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 // LOAD FILES
 require_once 'Router.php';
 spl_autoload_register(function ($class_name) {
-    $dirs = ['Model/Core/', 'Model/Gateway/', 'Model/Strategy/', ''];
+    $dirs = ['Model/Core/', 'Model/Gateway/', 'Model/Strategy/', 'Model/Memento/', ''];
     foreach ($dirs as $dir) {
         $file = __DIR__ . '/' . $dir . $class_name . '.php';
         // error_log("Cerco la classe $class_name in: $file");
@@ -40,6 +40,7 @@ $pdo = (new DatabaseFactory($dbConfig))->createConnection();
 $coursesGateway = new CoursesGateway($pdo);
 $argomentiGateway = new ArgomentiGateway($pdo);
 $notesGateway = new NotesGateway($pdo);
+$versionsGateway = new VersionsGateway($pdo);
 $userGateway = new UserGateway($pdo);
 $router = new Router();
 
@@ -105,6 +106,7 @@ $router->add('GET', '/cerca', function() use ($notesGateway) {
     }
 });
 
+// RF2
 $router->add('POST', '/login', function() use ($userGateway) {
     // Leggiamo i dati JSON dal corpo della richiesta
     $data = json_decode(file_get_contents('php://input'), true);
@@ -113,7 +115,7 @@ $router->add('POST', '/login', function() use ($userGateway) {
 
     $user = $userGateway->getUser(new EmailFilter($email));
 
-    if ($user && password_verify($password, $user['password'])) {
+    if ($user && hash('sha256', $password) === $user['password']) {
         // Login successo! Ritorna i dati dell'utente (senza la password)
         unset($user['password']);
         echo json_encode([
@@ -126,12 +128,14 @@ $router->add('POST', '/login', function() use ($userGateway) {
     }
 });
 
+// RF2
 $router->add('POST', '/logout', function() {
     session_start();
     session_destroy();
     echo json_encode(["status" => "success"]);
 });
 
+// RF1
 $router->add('POST', '/register', function() use ($userGateway) {
     $data = json_decode(file_get_contents('php://input'), true);
     
@@ -142,7 +146,7 @@ $router->add('POST', '/register', function() use ($userGateway) {
     }
 
     // Hashing della password
-    $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
+    $hashedPassword = hash('sha256', $data['password']);
 
     try {
         $userId = $userGateway->register([
@@ -155,6 +159,138 @@ $router->add('POST', '/register', function() use ($userGateway) {
     } catch (PDOException $e) {
         http_response_code(409); // Conflict (es. email già esistente)
         echo json_encode(["error" => "Email già registrata"]);
+    }
+});
+
+// RF6
+$router->add('POST', '/appunto/crea', function() use ($notesGateway, $argomentiGateway) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    
+    if (empty($data['titolo']) || empty($data['argomento_id']) || empty($data['utente_id'])) {
+        http_response_code(400);
+        echo json_encode(["error" => "Dati mancanti"]);
+        return;
+    }
+
+    try {
+        $corsoId = $argomentiGateway->getCorsoIdByArgomento(new IdFilter($data['argomento_id']));
+
+        $contenutoIniziale = $data['contenuto'] ?? "# " . $data['titolo'];
+
+        $newId = $notesGateway->createNote(
+            $data['argomento_id'], 
+            $data['utente_id'], 
+            $data['titolo'], 
+            $contenutoIniziale,
+            $corsoId
+        );
+
+        echo json_encode(["status" => "success", "id" => $newId]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
+});
+
+// RF7 & RF8: Salva una nuova versione
+$router->add('POST', '/appunto/versione/salva', function() use ($versionsGateway, $notesGateway, $argomentiGateway) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    
+    try {
+        // Recupero l'appunto attuale (prima della modifica)
+        $appuntoId = (int)$data['id'];
+        $notes = $notesGateway->getNotes(new IdFilter($appuntoId));
+        if (empty($notes)) throw new Exception("Appunto non trovato");
+        
+        $currentNote = $notes[0];
+        $corsoId = $argomentiGateway->getCorsoIdByArgomento(new IdFilter((int)$currentNote['argomento_id']));
+
+        // Uso dati vecchi e creo il memento (il contenuto che sta per diventare "passato")
+        $oldMemento = new NoteMemento(
+            $appuntoId, 
+            $currentNote['contenuto'], 
+            (int)$currentNote['utente_id']
+        );
+
+        // Salvo il vecchio memento nella cronologia
+        $versionsGateway->saveVersion($oldMemento, $corsoId);
+
+        // Sovrascrivo con l'appunto nuovo
+        $notesGateway->updateNoteContent($appuntoId, $data['testo']);
+
+        echo json_encode(["status" => "success", "message" => "Cronologia aggiornata e modifiche salvate"]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
+});
+
+//RF7 & RF8: Recupera cronologia versioni
+$router->add('GET', '/appunto/storia', function() use ($versionsGateway, $userGateway) {
+    $id = $_GET['id'] ?? null;
+    if (!$id) return;
+    
+    $versions = $versionsGateway->getVersionsList(new AppuntoFilter((int)$id));
+
+    foreach ($versions as &$v) {
+        try {
+            $user = $userGateway->getUser(new IdFilter((int)$v['utente_id']));
+            $v['autore'] = $user ? $user['email'] : 'Utente rimosso';
+        } catch (Exception $e) {
+            $v['autore'] = 'Errore recupero';
+        }
+        // Rimuoviamo l'utente_id dal JSON finale se non serve al frontend
+        unset($v['utente_id']);
+    }
+
+    echo json_encode($versions);
+});
+
+//RF8
+$router->add('GET', '/appunto/versione/visualizza', function() use ($versionsGateway) {
+    $versioneId = $_GET['versione_id'] ?? null;
+
+    try {
+        $memento = $versionsGateway->getMemento(new IdFilter((int)$versioneId));
+        $stato = $memento->getState();
+        echo json_encode(["status" => "success", "testo" => $stato['testo']]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
+});
+
+//RF7: Ripristina una versione specifica
+$router->add('POST', '/appunto/versione/ripristina', function() use ($versionsGateway, $notesGateway, $argomentiGateway) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $versioneId = (int)$data['versione_id'];
+    $utenteId = (int)$data['utente_id'];
+
+    try {
+        $mementoDaRipristinare = $versionsGateway->getMemento(new IdFilter($versioneId));
+        $testoStorico = $mementoDaRipristinare->getState()['testo'];
+        $appuntoId = $mementoDaRipristinare->getState()['id'];
+
+        $noteAttuale = $notesGateway->getNotes(new IdFilter($appuntoId))[0];
+        $corsoId = $argomentiGateway->getCorsoIdByArgomento(new IdFilter((int)$noteAttuale['argomento_id']));
+
+        $mementoStatoCorrente = new NoteMemento(
+            $appuntoId, 
+            $noteAttuale['contenuto'], 
+            $utenteId
+        );
+        $versionsGateway->saveVersion($mementoStatoCorrente, $corsoId);
+
+        $notesGateway->updateNoteContent($appuntoId, $testoStorico);
+
+        echo json_encode([
+            "status" => "success", 
+            "message" => "Versione ripristinata", 
+            "testo" => $testoStorico
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(["error" => $e->getMessage()]);
     }
 });
 

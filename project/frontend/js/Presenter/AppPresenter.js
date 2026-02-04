@@ -48,23 +48,40 @@ class AppPresenter {
 
     async handleArgomentoSelection(argId, argNome) {
         try {
-            const notes = await this.model.fetchAppunti(argId);
-            this.view.renderList(notes, `Argomento: ${argNome}`, (noteId) => {
-                this.handleViewNote(noteId, argId, argNome);
+            const appunti = await this.model.fetchAppunti(argId);
+            this.view.renderList(appunti, `Appunti: ${argNome}`, (noteId) => {
+                this.handleViewNote(noteId);
             });
+
+            // Se l'utente è loggato, aggiungiamo il tasto per creare un nuovo appunto
+            if (this.model.currentUser) {
+                const btnCreate = document.createElement('button');
+                btnCreate.className = 'btn btn-primary mt-3';
+                btnCreate.textContent = '+ Crea Nuovo Appunto';
+                btnCreate.onclick = () => this.showCreateNote(argId);
+                document.getElementById('main-content').appendChild(btnCreate);
+            }
         } catch (e) {
-            this.view.showError("Errore nel caricamento degli appunti.");
+            this.view.showError("Errore caricamento appunti.");
         }
     }
 
-    async handleViewNote(noteId, argId, argNome) {
+    async handleViewNote(noteId) {
         try {
             const note = await this.model.fetchNoteDetail(noteId);
-            this.view.renderNoteDetail(note, () => {
-                this.handleArgomentoSelection(argId, argNome);
-            });
+            
+            // Verifichiamo se l'utente è loggato
+            const isLogged = this.model.currentUser !== null;
+
+            // Passiamo isLogged come parametro canEdit
+            const onSave = isLogged ? (testo) => this.handleSaveVersion(noteId, testo) : null;
+            const onShowHistory = () => this.handleShowHistory(noteId);
+
+            // La View riceve il permesso di editing (isLogged)
+            this.view.renderNoteDetail(note, isLogged, onSave, onShowHistory);
+
         } catch (e) {
-            this.view.showError("Errore nel caricamento del dettaglio.");
+            this.view.showError("Impossibile caricare l'appunto.");
         }
     }
 
@@ -76,7 +93,7 @@ class AppPresenter {
                 const user = await this.model.login(email, password);
                 this.view.updateNavbar(user);
                 this.bindNavbarEvents();
-                this.view.renderList([], "Bentornato!"); 
+                this.view.renderWelcomeUser("Bentornato!");  
             } catch (e) {
                 this.view.showError("Credenziali non valide.");
             }
@@ -117,5 +134,63 @@ class AppPresenter {
         } catch (e) {
             console.error("Errore ricerca:", e);
         }
+    }
+
+    async handleSaveVersion(noteId, testo) {
+        try {
+            await this.model.saveVersion(noteId, testo, this.model.currentUser.id);
+            alert("Nuova versione salvata con successo!");
+        } catch (e) {
+            this.view.showError(e.message);
+        }
+    }
+
+    async handleShowHistory(noteId) {
+        try {
+            const history = await this.model.fetchStoria(noteId);
+            this.view.renderHistory(
+                history, 
+                (vId) => this.handleRestoreVersion(vId), // Callback Ripristina
+                (vId, date) => this.handlePreviewVersion(vId, date) // Callback Leggi
+            );
+        } catch (e) {
+            this.view.showError("Errore nel caricamento della cronologia.");
+        }
+    }
+
+    async handlePreviewVersion(versioneId, dataModifica) {
+        try {
+            const res = await this.model.fetchVersionPreview(versioneId);
+            this.view.showVersionPreview(res.testo, dataModifica);
+        } catch (e) {
+            this.view.showError("Impossibile caricare l'anteprima della versione.");
+        }
+    }
+
+    async handleRestoreVersion(versioneId) {
+        if (!confirm("Sei sicuro di voler ripristinare questa versione? Il testo attuale verrà archiviato e sostituito.")) return;
+        try {
+            const result = await this.model.restoreVersion(versioneId, this.model.currentUser.id);
+            
+            const textarea = document.querySelector('textarea');
+            if (textarea) textarea.value = result.testo;
+            
+            this.view.hideHistory();
+            alert("Versione ripristinata correttamente!");
+        } catch (e) {
+            this.view.showError(e.message);
+        }
+    }
+
+    showCreateNote(argId) {
+        this.view.renderCreateNoteForm(argId, async (titolo, contenuto) => {
+            try {
+                const res = await this.model.createNote(argId, this.model.currentUser.id, titolo, contenuto);
+                alert("Appunto creato!");
+                await this.handleViewNote(res.id);
+            } catch (e) {
+                this.view.showError(e.message);
+            }
+        });
     }
 }

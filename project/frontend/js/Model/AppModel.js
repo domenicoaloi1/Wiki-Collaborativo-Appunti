@@ -3,6 +3,7 @@ class AppModel {
     constructor() {
         this.courses = [];
         this.apiBase = 'http://localhost:8000';
+        this.currentUser = JSON.parse(localStorage.getItem('user')) || null;
     }
 
     async fetchCorsi() {
@@ -53,4 +54,58 @@ class AppModel {
         this.currentUser = data.user; // Salviamo l'utente nel modello
         return data.user;
     }
+
+    async createNote(argomentoId, utenteId, titolo, contenuto) {
+        const response = await fetch(`${this.apiBase}/appunto/crea`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                argomento_id: argomentoId,
+                utente_id: utenteId,
+                titolo: titolo,
+                contenuto: contenuto
+            })
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+            // Lanciamo l'errore specifico che arriva dal PHP
+            throw new Error(data.error || "Errore durante la creazione");
+        }
+
+        return data; // Ritorna {status: "success", id: ...}
+    }
+
+    async saveVersion(noteId, testo, utenteId) {
+        const response = await fetch(`${this.apiBase}/appunto/versione/salva`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: noteId, testo, utente_id: utenteId })
+        });
+        if (!response.ok) throw new Error("Errore nel salvataggio della versione");
+        return await response.json();
+    }
+
+    async fetchStoria(noteId) {
+        const response = await fetch(`${this.apiBase}/appunto/storia?id=${noteId}`);
+        if (!response.ok) throw new Error("Errore nel recupero della cronologia");
+        return await response.json();
+    }
+
+    async fetchVersionPreview(versioneId) {
+        const response = await fetch(`${this.apiBase}/appunto/versione/visualizza?versione_id=${versioneId}`);
+        if (!response.ok) throw new Error("Errore nel recupero dell'anteprima");
+        return await response.json();
+    }
+
+    async restoreVersion(versioneId, utenteId) {
+        const response = await fetch(`${this.apiBase}/appunto/versione/ripristina`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ versione_id: versioneId, utente_id: utenteId })
+        });
+        if (!response.ok) throw new Error("Errore nel ripristino della versione");
+        return await response.json();
+    }
+
 }

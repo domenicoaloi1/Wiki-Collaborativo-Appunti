@@ -1,28 +1,26 @@
 #!/bin/bash
 
-echo "RESET TOTALE AMBIENTE (MySQL)..."
+echo "RESET TOTALE AMBIENTE (MySQL e Storage appunti)..."
 
 if [ -d "project" ]; then
-    # 1. Pulizia file fisici storage
-    rm -rf project/backend/storage/notes/*
-    
+	# 1. Fermo i container e rimuovo i volumi
     cd project
-    
-    # 2. Spegnimento totale e rimozione volumi definiti
     docker-compose down -v --remove-orphans
     
-    # 3. Rimozione manuale del volume nominato (percorso sicuro)
-    # Prendiamo il nome della cartella attuale per identificare il volume
-    PROJECT_NAME=$(basename "$PWD")
-    VOLUME_NAME="${PROJECT_NAME}_db_data"
+    # 2. Pulizia fisica dello storage dei file
+    echo "Pulizia storage appunti..."
+    rm -rf backend/storage/notes/*
     
-    echo "Rimozione forzata del volume: $VOLUME_NAME"
-    docker volume rm "$VOLUME_NAME" 2>/dev/null
+    # 3. Ripristino file di prova
+    cd ..
+    if [ -d "appunti_prova" ]; then
+        echo "Ripristino file da appunti_prova..."
+        cp -r appunti_prova/* project/backend/storage/notes/
+    fi
     
-    # 4. Pulizia cache build
+    # 4. Ricostruzione e avvio
+    cd project
     docker-compose build --no-cache
-    
-    # 5. Riavvio
     docker-compose up -d
 	
 	echo "Attesa inizializzazione MySQL (15 secondi)..."
