@@ -5,7 +5,7 @@
  * NotesGateway implementa il pattern Table Data Gateway per la tabella 'appunti'.
  * Estende AbstractGateway per riutilizzare la logica di composizione delle query.
  */
-class NotesGateway extends AbstractGateway {
+class NotesGateway extends AbstractGateway implements INotesGateway{
     
     public function getNotes(FilterStrategy $strategy): array {
         $qo = new QueryObject();
@@ -80,6 +80,11 @@ class NotesGateway extends AbstractGateway {
         if ($path) {
             file_put_contents(__DIR__ . '/../../' . $path, $newContent);
         }
+    }
+
+    public function deleteNote($id) {
+        $sql = "DELETE FROM appunti WHERE id = ?";
+        $this->pdo->prepare($sql)->execute([$id]);
     }
 
 }

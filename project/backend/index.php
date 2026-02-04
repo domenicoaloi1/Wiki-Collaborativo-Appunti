@@ -43,7 +43,8 @@ $notesGateway = new NotesGateway($pdo);
 $versionsGateway = new VersionsGateway($pdo);
 $userGateway = new UserGateway($pdo);
 $router = new Router();
-
+$sessionUser = $_SESSION['user'] ?? null;
+$notesGateway = new NotesGatewayProxy($realNotesGateway, $sessionUser);
 // Routing
 
 // RF3
