@@ -1,7 +1,7 @@
 <?php
 // backend/Model/Gateway/ArgomentiGateway.php
 
-class ArgomentiGateway extends AbstractGateway {
+class ArgomentiGateway extends AbstractGateway implements IArgomentiGateway{
     
     public function getArgomenti(FilterStrategy $strategy): array {
         $qo = new QueryObject();
@@ -36,5 +36,17 @@ class ArgomentiGateway extends AbstractGateway {
         }
         
         return (int)$res;
+    }
+
+    public function createArgomento(string $nome, string $descrizione): int{
+        throw new Exception("Not Implemented Yet");
+    }
+
+    public function updateArgomento(int $id, string $nome, string $descrizione): void{
+        throw new Exception("Not Implemented Yet");
+    }
+
+    public function deleteArgomento(int $id): void{
+        throw new Exception("Not Implemented Yet");
     }
 }

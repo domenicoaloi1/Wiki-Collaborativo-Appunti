@@ -1,7 +1,7 @@
 <?php
 // backend/Model/Gateway/VersionsGateway.php
 
-class VersionsGateway extends AbstractGateway {
+class VersionsGateway extends AbstractGateway implements IVersionsGateway {
 
     /**
      * RF8: Recupera la lista delle versioni usando una Strategy (es. AppuntoFilter)

@@ -37,14 +37,17 @@ $factory = new DatabaseFactory($dbConfig);
 $pdo = (new DatabaseFactory($dbConfig))->createConnection();
 
 // Inizializzazione
-$coursesGateway = new CoursesGateway($pdo);
-$argomentiGateway = new ArgomentiGateway($pdo);
+$realCoursesGateway = new CoursesGateway($pdo);
+$realArgomentiGateway = new ArgomentiGateway($pdo);
 $realNotesGateway = new NotesGateway($pdo);
-$versionsGateway = new VersionsGateway($pdo);
+$realVersionsGateway = new VersionsGateway($pdo);
 $userGateway = new UserGateway($pdo);
 $router = new Router();
 $sessionUser = $_SESSION['user'] ?? null;
 $notesGateway = new NotesGatewayProxy($realNotesGateway, $sessionUser);
+$versionsGateway = new VersionsGatewayProxy($realVersionsGateway, $sessionUser);
+$coursesGateway = new CoursesGatewayProxy($realCoursesGateway, $sessionUser);
+$argomentiGateway = new ArgomentiGatewayProxy($realArgomentiGateway, $sessionUser);
 // Routing
 
 // RF3

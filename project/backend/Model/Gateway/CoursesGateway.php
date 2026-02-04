@@ -5,7 +5,7 @@
  * CoursesGateway implementa il pattern Table Data Gateway per la tabella 'corsi'.
  * Estende AbstractGateway per riutilizzare la logica di composizione delle query.
  */
-class CoursesGateway extends AbstractGateway {
+class CoursesGateway extends AbstractGateway implements ICoursesGateway{
     /**
      * Recupera i corsi basandosi su una strategia di filtraggio.
      * Rispetta l'incapsulamento dell'SQL richiesto dal pattern.
@@ -31,5 +31,17 @@ class CoursesGateway extends AbstractGateway {
      */
     public function findAll(): array {
         return $this->getCourses(new NoFilter());
+    }
+    
+    public function createCourse(string $nome, string $descrizione): int{
+        throw new Exception("Not Implemented Yet");
+    }
+
+    public function updateCourse(int $id, string $nome, string $descrizione): void{
+        throw new Exception("Not Implemented Yet");
+    }
+
+    public function deleteCourse(int $id): void{
+        throw new Exception("Not Implemented Yet");
     }
 }
