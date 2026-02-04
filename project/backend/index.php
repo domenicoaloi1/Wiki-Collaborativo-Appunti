@@ -40,6 +40,7 @@ $pdo = (new DatabaseFactory($dbConfig))->createConnection();
 $coursesGateway = new CoursesGateway($pdo);
 $argomentiGateway = new ArgomentiGateway($pdo);
 $notesGateway = new NotesGateway($pdo);
+$versionsGateway = new VersionsGateway($pdo);
 $userGateway = new UserGateway($pdo);
 $router = new Router();
 
