@@ -4,11 +4,12 @@
 
 -- Utenti
 
-INSERT IGNORE INTO utenti (id, email, password, ruolo) VALUES 
-(1, 'admin@unipr.it', '$2y$10$y6Z1hcIPLjJjfvib388TseOFtsxrtdgV/93381bHD5SCRsWPNKy8q', 'amministratore'), -- admin
-(2, 'studente_test1@studenti.unipr.it', '$2y$10$ccNvtXORkpj2e.AmqmbM3O81av7PR/tGs/cQLIv4gepLnk6qjY442', 'studente'), -- StudenteProva1
-(3, 'studente_test2@studenti.unipr.it', '$2y$10$.ayLWDWGwijcd/hpr7iev.IFMvCsOYboCGhlmbBP11M.1ywpkmQf.', 'studente'), -- StudenteProva2
-(4, 'studente_test3@studenti.unipr.it', '$2y$10$CGXByLfQ6TBVQSinOBBfkuaAmuCgoyMqrUSyPIvD6QALBHZmaN6Wi', 'studente'); -- StudenteProva3
+INSERT INTO utenti (id, email, password, ruolo) VALUES 
+(1, 'admin@unipr.it', SHA2('admin', 256), 'amministratore'),
+(2, 'studente_test1@studenti.unipr.it', SHA2('StudenteProva1', 256), 'studente'),
+(3, 'studente_test2@studenti.unipr.it', SHA2('StudenteProva2', 256), 'studente'),
+(4, 'studente_test3@studenti.unipr.it', SHA2('StudenteProva3', 256), 'studente')
+ON DUPLICATE KEY UPDATE password = VALUES(password);
 
 -- Corsi
 INSERT IGNORE INTO corsi (id, nome) VALUES 

@@ -105,6 +105,7 @@ $router->add('GET', '/cerca', function() use ($notesGateway) {
     }
 });
 
+// RF2
 $router->add('POST', '/login', function() use ($userGateway) {
     // Leggiamo i dati JSON dal corpo della richiesta
     $data = json_decode(file_get_contents('php://input'), true);
@@ -113,7 +114,7 @@ $router->add('POST', '/login', function() use ($userGateway) {
 
     $user = $userGateway->getUser(new EmailFilter($email));
 
-    if ($user && password_verify($password, $user['password'])) {
+    if ($user && hash('sha256', $password) === $user['password']) {
         // Login successo! Ritorna i dati dell'utente (senza la password)
         unset($user['password']);
         echo json_encode([
@@ -126,12 +127,14 @@ $router->add('POST', '/login', function() use ($userGateway) {
     }
 });
 
+// RF2
 $router->add('POST', '/logout', function() {
     session_start();
     session_destroy();
     echo json_encode(["status" => "success"]);
 });
 
+// RF1
 $router->add('POST', '/register', function() use ($userGateway) {
     $data = json_decode(file_get_contents('php://input'), true);
     
@@ -142,7 +145,7 @@ $router->add('POST', '/register', function() use ($userGateway) {
     }
 
     // Hashing della password
-    $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
+    $hashedPassword = hash('sha256', $data['password']);
 
     try {
         $userId = $userGateway->register([
