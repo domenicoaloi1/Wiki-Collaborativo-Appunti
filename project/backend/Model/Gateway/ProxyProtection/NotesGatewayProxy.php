@@ -1,5 +1,5 @@
 <?php
-// services/backend/src/Gateways/NotesGatewayProxy.php
+// services/backend/Gateway/ProxyProtection/NotesGatewayProxy.php
 
 class NotesGatewayProxy implements INotesGateway {
     private $realGateway;
