@@ -72,4 +72,14 @@ class NotesGateway extends AbstractGateway {
         }
     }
 
+    public function updateNoteContent(int $id, string $newContent): void {
+        $stmt = $this->pdo->prepare("SELECT file_path FROM appunti WHERE id = ?");
+        $stmt->execute([$id]);
+        $path = $stmt->fetchColumn();
+
+        if ($path) {
+            file_put_contents(__DIR__ . '/../../' . $path, $newContent);
+        }
+    }
+
 }

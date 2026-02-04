@@ -46,21 +46,29 @@ class VersionsGateway extends AbstractGateway {
     }
 
     /**
-     * RF7: Il salvataggio rimane diretto poiché è un'operazione di scrittura (Command)
+     * RF7: Salvataggio versione
      */
     public function saveVersion(NoteMemento $memento, int $corsoId): void {
         $state = $memento->getState();
-        $fileName = "v_" . time() . ".md";
-        $relativeDir = "storage/notes/$corsoId/versions/" . $state['id'];
-        
-        if (!is_dir(__DIR__ . "/../../" . $relativeDir)) {
-            mkdir(__DIR__ . "/../../" . $relativeDir, 0777, true);
-        }
+        $appuntoId = (int)$state['id'];
+        $utenteId = (int)$state['utente_id'];
+        $testoDaArchiviare = $state['testo'];
 
+        // Calcolo numero versione
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM versioni WHERE appunto_id = ?");
+        $stmt->execute([$appuntoId]);
+        $nextVersion = (int)$stmt->fetchColumn() + 1;
+        $fileName = "v" . $nextVersion . ".md";
+
+        // Directory
+        $relativeDir = "storage/notes/$corsoId/versions/$appuntoId";
+        $fullPathDir = __DIR__ . "/../../" . $relativeDir;
+        if (!is_dir($fullPathDir)) mkdir($fullPathDir, 0777, true);
+
+        // Salvataggi
         $path = $relativeDir . "/" . $fileName;
-        file_put_contents(__DIR__ . "/../../" . $path, $state['testo']);
-
+        file_put_contents(__DIR__ . "/../../" . $path, $testoDaArchiviare);
         $sql = "INSERT INTO versioni (appunto_id, utente_id, testo_percorso) VALUES (?, ?, ?)";
-        $this->pdo->prepare($sql)->execute([$state['id'], $state['utente_id'], $path]);
+        $this->pdo->prepare($sql)->execute([$appuntoId, $utenteId, $path]);
     }
 }

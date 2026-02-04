@@ -194,29 +194,31 @@ $router->add('POST', '/appunto/crea', function() use ($notesGateway, $argomentiG
 
 // RF7 & RF8: Salva una nuova versione
 $router->add('POST', '/appunto/versione/salva', function() use ($versionsGateway, $notesGateway, $argomentiGateway) {
-    // salva le versioni ma in un formato di nome che non mi piace
     $data = json_decode(file_get_contents('php://input'), true);
     
-    if (empty($data['id']) || empty($data['testo']) || empty($data['utente_id'])) {
-        http_response_code(400);
-        echo json_encode(["error" => "Dati insufficienti per il versionamento"]);
-        return;
-    }
-
     try {
-        $notes = $notesGateway->getNotes(new IdFilter((int)$data['id']));
+        // Recupero l'appunto attuale (prima della modifica)
+        $appuntoId = (int)$data['id'];
+        $notes = $notesGateway->getNotes(new IdFilter($appuntoId));
         if (empty($notes)) throw new Exception("Appunto non trovato");
-        $argomentoId = (int)$notes[0]['argomento_id'];
-        $corsoId = $argomentiGateway->getCorsoIdByArgomento(new IdFilter($argomentoId));
-
-        $noteOriginator = new Note();
-        $noteOriginator->setContent((int)$data['id'], $data['testo'], (int)$data['utente_id']);
-
-        $memento = $noteOriginator->saveToMemento();
         
-        $versionsGateway->saveVersion($memento, $corsoId);
+        $currentNote = $notes[0];
+        $corsoId = $argomentiGateway->getCorsoIdByArgomento(new IdFilter((int)$currentNote['argomento_id']));
 
-        echo json_encode(["status" => "success", "message" => "Versione salvata"]);
+        // Uso dati vecchi e creo il memento (il contenuto che sta per diventare "passato")
+        $oldMemento = new NoteMemento(
+            $appuntoId, 
+            $currentNote['contenuto'], 
+            (int)$currentNote['utente_id']
+        );
+
+        // Salvo il vecchio memento nella cronologia
+        $versionsGateway->saveVersion($oldMemento, $corsoId);
+
+        // Sovrascrivo con l'appunto nuovo
+        $notesGateway->updateNoteContent($appuntoId, $data['testo']);
+
+        echo json_encode(["status" => "success", "message" => "Cronologia aggiornata e modifiche salvate"]);
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode(["error" => $e->getMessage()]);
