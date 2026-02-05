@@ -93,7 +93,9 @@ class AppPresenter {
                 const user = await this.model.login(email, password);
                 this.view.updateNavbar(user);
                 this.bindNavbarEvents();
-                this.view.renderWelcomeUser("Bentornato!");  
+
+                this.view.renderWelcomeUser(user, () => this.manageAdminCourses());
+                
             } catch (e) {
                 this.view.showError("Credenziali non valide.");
             }
@@ -192,5 +194,119 @@ class AppPresenter {
                 this.view.showError(e.message);
             }
         });
+    }
+
+    // --- LIVELLO 1: CORSI ---
+    async manageAdminCourses() {
+        try {
+            const courses = await this.model.fetchCorsi();
+            this.view.renderAdminList(
+                "Gestione Corsi",
+                courses,
+                null, // Nessun tasto indietro qui
+                () => this.handleCreateCourse().then(() => this.manageAdminCourses()),
+                (id) => this.handleDeleteCourse(id).then(() => this.manageAdminCourses()),
+                (id, nome) => this.manageAdminTopics(id, nome) // Passa al livello 2
+            );
+        } catch (e) {
+            this.view.showError("Errore caricamento corsi.");
+        }
+    }
+
+    // --- LIVELLO 2: ARGOMENTI ---
+    async manageAdminTopics(corsoId, corsoNome) {
+        try {
+            const topics = await this.model.fetchArgomenti(corsoId);
+            this.view.renderAdminList(
+                `Argomenti: ${corsoNome}`,
+                topics,
+                () => this.manageAdminCourses(), // Torna indietro ai corsi
+                () => this.handleCreateArgomento(corsoId).then(() => this.manageAdminTopics(corsoId, corsoNome)),
+                (id) => this.handleDeleteArgomento(id).then(() => this.manageAdminTopics(corsoId, corsoNome)),
+                (id, nome) => this.manageAdminNotes(id, nome, corsoId, corsoNome) // Passa al livello 3
+            );
+        } catch (e) {
+            this.view.showError("Errore caricamento argomenti.");
+        }
+    }
+
+    // --- LIVELLO 3: APPUNTI ---
+    async manageAdminNotes(argomentoId, argomentoNome, corsoId, corsoNome) {
+        try {
+            const notes = await this.model.fetchAppunti(argomentoId);
+            this.view.renderAdminList(
+                `Appunti: ${argomentoNome}`,
+                notes,
+                () => this.manageAdminTopics(corsoId, corsoNome), // Torna indietro agli argomenti
+                () => this.showCreateNote(argomentoId).then(() => this.manageAdminNotes(argomentoId, argomentoNome, corsoId, corsoNome)),
+                (id) => this.handleDeleteNote(id, argomentoId, argomentoNome).then(() => this.manageAdminNotes(argomentoId, argomentoNome, corsoId, corsoNome)),
+                null // Livello finale: non si clicca ulteriormente per ora
+            );
+        } catch (e) {
+            this.view.showError("Errore caricamento appunti.");
+        }
+    }
+
+    // --- HANDLER PER CORSI ---
+    async handleCreateCourse() {
+        const nome = prompt("Inserisci il nome del nuovo corso:");
+        const descrizione = prompt("Inserisci una breve descrizione:");
+        
+        if (nome && descrizione) {
+            try {
+                await this.model.createCourse(nome, descrizione);
+                alert("Corso creato!");
+                this.manageAdminCourses(); // Ricarica la lista per vedere la modifica
+            } catch (e) {
+                this.view.showError(e.message);
+            }
+        }
+    }
+
+    async handleDeleteCourse(id) {
+        if (confirm("Sei sicuro? Eliminando il corso cancellerai anche tutti i suoi argomenti e appunti.")) {
+            try {
+                await this.model.deleteCourse(id);
+                this.manageAdminCourses(); // Aggiorna la lista
+            } catch (e) {
+                this.view.showError(e.message);
+            }
+        }
+    }
+
+    // --- HANDLER PER ARGOMENTI ---
+    async handleCreateArgomento(corsoId, corsoNome) {
+        const nome = prompt("Nome del nuovo argomento:");
+        if (nome) {
+            try {
+                await this.model.createArgomento(corsoId, nome);
+                this.manageAdminTopics(corsoId, corsoNome); // Aggiorna lista argomenti
+            } catch (e) {
+                this.view.showError(e.message);
+            }
+        }
+    }
+
+    async handleDeleteArgomento(id, corsoId, corsoNome) {
+        if (confirm("Eliminare questo argomento e tutti i suoi appunti?")) {
+            try {
+                await this.model.deleteArgomento(id); 
+                this.manageAdminTopics(corsoId, corsoNome);
+            } catch (e) {
+                this.view.showError(e.message);
+            }
+        }
+    }
+
+    // --- HANDLER PER APPUNTI ---
+    async handleDeleteNote(id, argId, argNome, corsoId, corsoNome) {
+        if (confirm("Eliminare definitivamente questo appunto?")) {
+            try {
+                await this.model.deleteNote(id);
+                this.manageAdminNotes(argId, argNome, corsoId, corsoNome); // Aggiorna lista appunti
+            } catch (e) {
+                this.view.showError(e.message);
+            }
+        }
     }
 }

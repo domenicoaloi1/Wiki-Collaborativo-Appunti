@@ -108,4 +108,46 @@ class AppModel {
         return await response.json();
     }
 
+    async createCourse(nome, descrizione) {
+        const response = await fetch(`${this.apiBase}/corso/crea`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome, descrizione })
+        });
+        return await response.json();
+    }
+
+    async deleteCourse(id) {
+        return await fetch(`${this.apiBase}/corso/elimina`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+        }).then(res => res.json());
+    }
+
+    async createArgomento(corsoId, nome) {
+        const response = await fetch(`${this.apiBase}/argomento/crea`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ corso_id: corsoId, nome })
+        });
+        return await response.json();
+    }
+
+    async deleteArgomento(id) {
+        return await fetch(`${this.apiBase}/argomento/elimina`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+        }).then(res => res.json());
+    }
+
+    async deleteNote(id) {
+        return await fetch(`${this.apiBase}/appunto/elimina`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+        }).then(res => res.json());
+    }
+
 }

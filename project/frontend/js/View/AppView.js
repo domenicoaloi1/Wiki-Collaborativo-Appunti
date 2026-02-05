@@ -80,19 +80,39 @@ class AppView {
     }
 
     // --- RENDERING MAIN CONTENT ---
-    renderWelcomeUser(contextTitle) {
-        if (!this.mainContent) return;
+    renderWelcomeUser(user, onAdminClick) {
         this.mainContent.innerHTML = '';
+        const container = this._createElement('div', 'text-center mt-5 p-4');
+        
+        // Titolo di benvenuto
+        const h2 = this._createElement('h2', 'mb-4');
+        h2.textContent = "Bentornato!";
+        container.appendChild(h2);
 
-        const h2 = this._createElement('h2', 'mb-4 text-primary');
-        h2.textContent = contextTitle;
+        // Creazione del box messaggi (alert)
+        const messageBox = this._createElement('div', 'alert mx-auto w-50 d-flex align-items-center justify-content-center');
+        
+        if (user.ruolo === 'amministratore') {
+            // Stile Admin: Box Giallo
+            messageBox.classList.add('alert-warning');
+            messageBox.innerHTML = '<i class="bi bi-shield-lock-fill me-2"></i>Console di amministrazione.';
+            
+            // Pulsante Gestione (solo per Admin)
+            const btnAdmin = this._createElement('button', 'btn btn-primary mt-3 d-flex align-items-center mx-auto');
+            btnAdmin.innerHTML = '<i class="bi bi-gear-fill me-2"></i>Gestione catalogo';
+            btnAdmin.onclick = onAdminClick;
+            
+            container.append(messageBox, btnAdmin);
+        } else {
+            // Stile Studente: Box Blu
+            messageBox.classList.add('alert-info');
+            messageBox.innerHTML = '<i class="bi bi-info-circle-fill me-2"></i>Naviga tra i corsi o cerca un appunto.';
+            
+            container.appendChild(messageBox);
+        }
 
-        const alert = this._createElement('div', 'alert alert-info');
-        alert.textContent = "Naviga tra i corsi o cerca un appunto.";
-        this.mainContent.append(h2, alert);
-        return;
+        this.mainContent.appendChild(container);
     }
-
     renderList(notes, contextTitle, onNoteClick) {
         if (!this.mainContent) return;
         this.mainContent.innerHTML = '';
@@ -352,6 +372,56 @@ class AppView {
         };
 
         container.append(h2, form);
+        this.mainContent.appendChild(container);
+    }
+
+    renderAdminList(title, items, onBack, onAdd, onDelete, onSelectItem) {
+        this.mainContent.innerHTML = '';
+        const container = this._createElement('div', 'p-4');
+
+        // Header con tasto Indietro (se non siamo al livello Corsi) e Titolo
+        const header = this._createElement('div', 'd-flex align-items-center mb-4');
+        if (onBack) {
+            const btnBack = this._createElement('button', 'btn btn-outline-secondary btn-sm me-3');
+            btnBack.innerHTML = '<i class="bi bi-arrow-left"></i>';
+            btnBack.onclick = onBack;
+            header.appendChild(btnBack);
+        }
+        const h2 = this._createElement('h2', 'm-0');
+        h2.textContent = title;
+        header.appendChild(h2);
+
+        // Tasto Aggiungi
+        const btnAdd = this._createElement('button', 'btn btn-success btn-sm mb-3 d-inline-flex align-items-center');
+        btnAdd.innerHTML = `<i class="bi bi-plus-lg me-1"></i>Aggiungi`;
+        btnAdd.onclick = onAdd;
+        const btnWrapper = this._createElement('div', 'text-end'); // o 'text-end' se lo preferisci a destra
+        btnWrapper.appendChild(btnAdd);
+
+        // Lista degli elementi
+        const list = this._createElement('div', 'list-group shadow-sm');
+        items.forEach(item => {
+            const div = this._createElement('div', 'list-group-item d-flex justify-content-between align-items-center');
+            
+            // Nome cliccabile (se c'è un'azione di selezione, es. per scendere di livello)
+            const label = this._createElement('span', 'flex-grow-1 py-2');
+            label.textContent = item.nome || item.titolo;
+            if (onSelectItem) {
+                label.style.cursor = 'pointer';
+                label.classList.add('fw-bold', 'text-primary');
+                label.onclick = () => onSelectItem(item.id, item.nome || item.titolo);
+            }
+
+            // Tasto Elimina (Cestino rosso)
+            const btnDel = this._createElement('button', 'btn btn-outline-danger border-0');
+            btnDel.innerHTML = '<i class="bi bi-trash3"></i>';
+            btnDel.onclick = () => onDelete(item.id);
+
+            div.append(label, btnDel);
+            list.appendChild(div);
+        });
+
+        container.append(header, btnWrapper, list);
         this.mainContent.appendChild(container);
     }
 }

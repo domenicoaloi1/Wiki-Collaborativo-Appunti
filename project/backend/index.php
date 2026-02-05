@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 // LOAD FILES
 require_once 'Router.php';
 spl_autoload_register(function ($class_name) {
-    $dirs = ['Model/Core/', 'Model/Gateway/', 'Model/Strategy/', 'Model/Memento/', ''];
+    $dirs = ['Model/Core/', 'Model/Gateway/', 'Model/Gateway/ProxyProtection/', 'Model/Gateway/Interface/', 'Model/Strategy/', 'Model/Memento/', ''];
     foreach ($dirs as $dir) {
         $file = __DIR__ . '/' . $dir . $class_name . '.php';
         // error_log("Cerco la classe $class_name in: $file");
@@ -302,8 +302,9 @@ $router->add('POST', '/appunto/versione/ripristina', function() use ($versionsGa
 $router->add('POST', '/corso/crea', function() use ($coursesGateway) {
     $data = json_decode(file_get_contents('php://input'), true);
     try {
-        $id = $coursesGateway->createCourse($data['nome'], $data['descrizione']);
-        echo json_encode(["status" => "success", "id" => $id]);
+        throw new Exception("/corso/crea Not Implemented Yet");
+        // $id = $coursesGateway->createCourse($data['nome'], $data['descrizione']);
+        // echo json_encode(["status" => "success", "id" => $id]);
     } catch (Exception $e) {
         http_response_code(403);
         echo json_encode(["error" => $e->getMessage()]);
@@ -314,8 +315,9 @@ $router->add('POST', '/corso/crea', function() use ($coursesGateway) {
 $router->add('POST', '/corso/modifica', function() use ($coursesGateway) {
     $data = json_decode(file_get_contents('php://input'), true);
     try {
-        $coursesGateway->updateCourse((int)$data['id'], $data['nome'], $data['descrizione']);
-        echo json_encode(["status" => "success"]);
+        throw new Exception("/corso/modifica Not Implemented Yet");
+        // $coursesGateway->updateCourse((int)$data['id'], $data['nome'], $data['descrizione']);
+        // echo json_encode(["status" => "success"]);
     } catch (Exception $e) {
         http_response_code(403);
         echo json_encode(["error" => $e->getMessage()]);
@@ -326,8 +328,9 @@ $router->add('POST', '/corso/modifica', function() use ($coursesGateway) {
 $router->add('POST', '/argomento/crea', function() use ($argomentiGateway) {
     $data = json_decode(file_get_contents('php://input'), true);
     try {
-        $id = $argomentiGateway->createArgomento((int)$data['corso_id'], $data['nome']);
-        echo json_encode(["status" => "success", "id" => $id]);
+        throw new Exception("/argomento/crea Not Implemented Yet");
+        // $id = $argomentiGateway->createArgomento((int)$data['corso_id'], $data['nome']);
+        // echo json_encode(["status" => "success", "id" => $id]);
     } catch (Exception $e) {
         http_response_code(403);
         echo json_encode(["error" => $e->getMessage()]);
@@ -338,8 +341,9 @@ $router->add('POST', '/argomento/crea', function() use ($argomentiGateway) {
 $router->add('POST', '/argomento/modifica', function() use ($argomentiGateway) {
     $data = json_decode(file_get_contents('php://input'), true);
     try {
-        $argomentiGateway->updateArgomento((int)$data['id'], $data['nome']);
-        echo json_encode(["status" => "success"]);
+        throw new Exception("/argomento/modifica Not Implemented Yet");
+        // $argomentiGateway->updateArgomento((int)$data['id'], $data['nome']);
+        // echo json_encode(["status" => "success"]);
     } catch (Exception $e) {
         http_response_code(403);
         echo json_encode(["error" => $e->getMessage()]);
@@ -348,12 +352,10 @@ $router->add('POST', '/argomento/modifica', function() use ($argomentiGateway) {
 
 // RF10
 $router->add('POST', '/corso/elimina', function() use ($coursesGateway, $argomentiGateway, $notesGateway, $versionsGateway) {
-    throw new Exception("Not Implemented Yet");
-
     // di base per tutte le altre rotte l'idea è questa qui sotto abbozzata (ovviamente è la più lunga questa)
     $data = json_decode(file_get_contents('php://input'), true);
     try {
-        
+        throw new Exception("/corso/elimina Not Implemented Yet");
         // get argomenti da corso_id
         // $courseStrategy = new CourseFilter((int)$data['id']);
         // $argomenti = $argomentiGateway->getArgomenti($courseStrategy);
@@ -391,7 +393,7 @@ $router->add('POST', '/corso/elimina', function() use ($coursesGateway, $argomen
         // delete corsi
         // $coursesGateway->deleteCourse((int)$data['id']);
 
-        echo json_encode(["status" => "success"]);
+        // echo json_encode(["status" => "success"]);
     } catch (Exception $e) {
         http_response_code(403);
         echo json_encode(["error" => $e->getMessage()]);
@@ -402,8 +404,9 @@ $router->add('POST', '/corso/elimina', function() use ($coursesGateway, $argomen
 $router->add('POST', '/argomento/elimina', function() use ($argomentiGateway) {
     $data = json_decode(file_get_contents('php://input'), true);
     try {
-        $argomentiGateway->deleteArgomento((int)$data['id']);
-        echo json_encode(["status" => "success"]);
+        throw new Exception("/argomento/elimina Not Implemented Yet");
+        // $argomentiGateway->deleteArgomento((int)$data['id']);
+        // echo json_encode(["status" => "success"]);
     } catch (Exception $e) {
         http_response_code(403);
         echo json_encode(["error" => $e->getMessage()]);
@@ -412,11 +415,11 @@ $router->add('POST', '/argomento/elimina', function() use ($argomentiGateway) {
 
 // RF10
 $router->add('POST', '/appunto/elimina', function() use ($notesGateway) {
-    throw new Exception("Not Implemented Yet");
     $data = json_decode(file_get_contents('php://input'), true);
     try {
-        $notesGateway->deleteNote((int)$data['id']);
-        echo json_encode(["status" => "success"]);
+        throw new Exception("/appunto/elimina Not Implemented Yet");
+        // $notesGateway->deleteNote((int)$data['id']);
+        // echo json_encode(["status" => "success"]);
     } catch (Exception $e) {
         http_response_code(403);
         echo json_encode(["error" => $e->getMessage()]);
