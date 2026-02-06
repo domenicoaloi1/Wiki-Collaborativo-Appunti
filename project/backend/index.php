@@ -50,6 +50,13 @@ $notesGateway = new NotesGatewayProxy($realNotesGateway, $sessionUser);
 $versionsGateway = new VersionsGatewayProxy($realVersionsGateway, $sessionUser);
 $coursesGateway = new CoursesGatewayProxy($realCoursesGateway, $sessionUser);
 $argomentiGateway = new ArgomentiGatewayProxy($realArgomentiGateway, $sessionUser);
+$gateways = [
+    'course' => $coursesGateway,
+    'topic' => $argomentiGateway,
+    'note' => $notesGateway,
+    'version' => $versionsGateway
+];
+$cascadeService = new CascadeService($pdo, $gateways);
 // Routing
 
 // RF3
@@ -333,44 +340,57 @@ $router->add('POST', '/argomento/crea', function() use ($argomentiGateway) {
 });
 
 // RF10
-$router->add('POST', '/corso/elimina', function() use ($coursesGateway, $argomentiGateway, $notesGateway, $versionsGateway) {
+$router->add('POST', '/corso/elimina', function() use ($cascadeService) {
     $data = json_decode(file_get_contents('php://input'), true);
     try {
-        $listaArgomentiId = [];
-        $listaAppuntiId = [];
-
-        // getArgomenti
-        $courseStrategy = new CourseFilter((int)$data['id']);
-        $argomenti = $argomentiGateway->getArgomenti($courseStrategy);
-
-        foreach ($argomenti as $argomento) {
-            $listaArgomentiId[] = ((int)$argomento['id']);
-        }
-
-        // getAppunti
-        $argomentiIdInStrategy = new ArgomentiIdInFilter($listaArgomentiId);
-        $appunti = $notesGateway->getNotes($argomentiIdInStrategy);
-
-        foreach ($appunti as $appunto) {
-            $listaAppuntiId[] = ((int)$appunto['id']);
-        }
-
-        // delVersioni
-        $appuntoIdInFIlterStrategy = new AppuntoIdInFilter($listaAppuntiId);
-        $versionsGateway->deleteVersions($appuntoIdInFIlterStrategy);
-
-        // delAppunti
-        $listaAppuntiIdStrategy = new IdInFilter($listaAppuntiId);
-        $notesGateway->deleteNotes($listaAppuntiIdStrategy);
-
-        // delArgomenti
-        $listaArgomentiIdStrategy = new IdInFilter($listaArgomentiId);
-        $argomentiGateway->deleteArguments($listaArgomentiIdStrategy);
-
-        // delCorso
-        $coursesGateway->deleteCourse((int)$data['id']);
-
+        $cascadeService->deleteFullCourse((int)$data['id']);
         echo json_encode(["status" => "success"]);
+        // $listaArgomentiId = [];
+        // $listaAppuntiId = [];
+
+        // // getArgomenti
+        // $courseStrategy = new CourseFilter((int)$data['id']);
+        // $argomenti = $argomentiGateway->getArgomenti($courseStrategy);
+
+        // foreach ($argomenti as $argomento) {
+        //     $listaArgomentiId[] = ((int)$argomento['id']);
+        // }
+
+        // //$listaargomenti = implode(', ', $listaArgomentiId);
+
+        // if (count($listaArgomentiId) > 0){
+        //     // getAppunti
+        //     $argomentiIdInStrategy = new ArgomentiIdInFilter($listaArgomentiId);
+        //     $appunti = $notesGateway->getNotes($argomentiIdInStrategy);
+
+        //     foreach ($appunti as $appunto) {
+        //         $listaAppuntiId[] = ((int)$appunto['id']);
+        //     }
+        // }
+
+        // //$listaidappunti = implode(', ', $listaAppuntiId);
+        // //throw new Exception("listaAppuntiId: ".$listaidappunti . "listaArgomentiId:" .$listaargomenti);
+
+        // if (count($listaAppuntiId) > 0){
+        //     // delVersioni
+        //     $appuntoIdInFIlterStrategy = new AppuntoIdInFilter($listaAppuntiId);
+        //     $versionsGateway->deleteVersions($appuntoIdInFIlterStrategy);
+
+        //     // delAppunti
+        //     $listaAppuntiIdStrategy = new IdInFilter($listaAppuntiId);
+        //     $notesGateway->deleteNotes($listaAppuntiIdStrategy);
+        // }
+        
+        // if (count($listaArgomentiId) > 0){
+        //     // delArgomenti
+        //     $listaArgomentiIdStrategy = new IdInFilter($listaArgomentiId);
+        //     $argomentiGateway->deleteArguments($listaArgomentiIdStrategy);
+        // }
+
+        // // delCorso
+        // $coursesGateway->deleteCourse((int)$data['id']);
+
+        // echo json_encode(["status" => "success"]);
     } catch (Exception $e) {
         http_response_code(403);
         echo json_encode(["error" => $e->getMessage()]);
@@ -378,31 +398,34 @@ $router->add('POST', '/corso/elimina', function() use ($coursesGateway, $argomen
 });
 
 // RF10
-$router->add('POST', '/argomento/elimina', function() use ($argomentiGateway, $notesGateway, $versionsGateway) {
+$router->add('POST', '/argomento/elimina', function() use ($cascadeService) {
     $data = json_decode(file_get_contents('php://input'), true);
     try {
-        $listaAppuntiId = [];
-
-        // getAppunti
-        $argomentoStrategy = new ArgomentoFilter((int)$data['id']);
-        $appunti = $notesGateway->getNotes($argomentoStrategy);
-
-        foreach ($appunti as $appunto) {
-            $listaAppuntiId[] = ((int)$appunto['id']);
-        }
-
-        // delVersioni
-        $appuntoIdInFIlterStrategy = new AppuntoIdInFilter($listaAppuntiId);
-        $versionsGateway->deleteVersions($appuntoIdInFIlterStrategy);
-
-        // delAppunti
-        $listaAppuntiIdStrategy = new IdInFilter($listaAppuntiId);
-        $notesGateway->deleteNotes($listaAppuntiIdStrategy);
-
-        // delArgomento
-        $argomentiGateway->deleteArgomento((int)$data['id']);
-
+        $cascadeService->deleteArgumentWithContent((int)$data['id']);
         echo json_encode(["status" => "success"]);
+        // $listaAppuntiId = [];
+
+        // // getAppunti
+        // $argomentoStrategy = new ArgomentoFilter((int)$data['id']);
+        // $appunti = $notesGateway->getNotes($argomentoStrategy);
+
+        // foreach ($appunti as $appunto) {
+        //     $listaAppuntiId[] = ((int)$appunto['id']);
+        // }
+
+        // if (!empty($listaAppuntiId)){
+        //     // delVersioni
+        //     $appuntoIdInFIlterStrategy = new AppuntoIdInFilter($listaAppuntiId);
+        //     $versionsGateway->deleteVersions($appuntoIdInFIlterStrategy);
+
+        //     // delAppunti
+        //     $listaAppuntiIdStrategy = new IdInFilter($listaAppuntiId);
+        //     $notesGateway->deleteNotes($listaAppuntiIdStrategy);
+        // }
+
+        // // delArgomento
+        // $argomentiGateway->deleteArgomento((int)$data['id']);
+        // echo json_encode(["status" => "success"]);
     } catch (Exception $e) {
         http_response_code(403);
         echo json_encode(["error" => $e->getMessage()]);
@@ -410,17 +433,19 @@ $router->add('POST', '/argomento/elimina', function() use ($argomentiGateway, $n
 });
 
 // RF10
-$router->add('POST', '/appunto/elimina', function() use ($notesGateway, $versionsGateway) {
+$router->add('POST', '/appunto/elimina', function() use ($cascadeService) {
     $data = json_decode(file_get_contents('php://input'), true);
     try {
-        // delVersioni
-        $appuntoIdInFIlterStrategy = new AppuntoIdInFilter([(int)$data['id']]);
-        $versionsGateway->deleteVersions($appuntoIdInFIlterStrategy);
-
-        // delApunto
-        $notesGateway->deleteNote((int)$data['id']);
-
+        $cascadeService->deleteNoteWithVersions((int)$data['id']);
         echo json_encode(["status" => "success"]);
+        // delVersioni
+        // $appuntoIdInFIlterStrategy = new AppuntoIdInFilter([(int)$data['id']]);
+        // $versionsGateway->deleteVersions($appuntoIdInFIlterStrategy);
+
+        // // delApunto
+        // $notesGateway->deleteNote((int)$data['id']);
+
+        // echo json_encode(["status" => "success"]);
     } catch (Exception $e) {
         http_response_code(403);
         echo json_encode(["error" => $e->getMessage()]);

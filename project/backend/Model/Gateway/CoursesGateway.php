@@ -44,7 +44,7 @@ class CoursesGateway extends AbstractGateway implements ICoursesGateway{
             return $newId;
         } catch (Exception $e) {
             $this->pdo->rollBack();
-            throw $e;
+            throw new Exception("CoursesGateway.createCourse: " . $e->getMessage());
         }
     }
 

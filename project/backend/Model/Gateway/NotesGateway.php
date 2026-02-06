@@ -68,7 +68,7 @@ class NotesGateway extends AbstractGateway implements INotesGateway{
             return $newId;
         } catch (Exception $e) {
             $this->pdo->rollBack();
-            throw $e;
+            throw new Exception("NotesGateway.createNote: " . $e->getMessage());
         }
     }
 
@@ -89,19 +89,19 @@ class NotesGateway extends AbstractGateway implements INotesGateway{
             $strategy->buildCriteria($qo);
 
             $params = [];
-            $baseSql = "DELETE FROM appunti"; 
+            $baseSql = "DELETE FROM appunti "; 
             $where = $this->buildWhereClause($qo, $params);
 
             if (empty($where)) {
                 throw new Exception("Attenzione: clausola WHERE vuota. Rischio cancellazione totale!");
             }
 
-            $this->pdo->beginTransaction();
+            // $this->pdo->beginTransaction();
 
             $stmt = $this->pdo->prepare($baseSql . $where);
             $stmt->execute($params);
 
-            $this->pdo->commit();
+            // $this->pdo->commit();
 
             // implementare cancellazione file
 
@@ -111,7 +111,7 @@ class NotesGateway extends AbstractGateway implements INotesGateway{
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }
-            throw $e;
+            throw new Exception("NotesGateway.deleteNotes: " . $e->getMessage());
         }
     }
 
@@ -125,39 +125,6 @@ class NotesGateway extends AbstractGateway implements INotesGateway{
         $sql = "DELETE FROM appunti WHERE argomento_id = ?";
         $this->pdo->prepare($sql)->execute([$argomento_id]);
         // implementare cancellazione file
-    }
-
-    public function getNotesFromArgument(FilterStrategy $strategy): array {
-        $qo = new QueryObject();
-        $strategy->buildCriteria($qo);
-
-        $params = [];
-        $baseSql = "SELECT * FROM appunti";
-        $where = $this->buildWhereClause($qo, $params);
-        
-        $stmt = $this->pdo->prepare($baseSql . $where);
-        $stmt->execute($params);
-        
-        $notes = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        if ($strategy instanceof IdFilter && !empty($notes)) {
-            $note = &$notes[0];
-            
-            if (!empty($note['file_path'])) {
-                // NotesGateway è in Model/Gateway/, quindi salgo di due livelli (../../)
-                $fullPath = __DIR__ . '/../../' . $note['file_path'];
-
-                if (file_exists($fullPath)) {
-                    $note['contenuto'] = file_get_contents($fullPath);
-                } else {
-                    $note['contenuto'] = "Errore: Il file non è stato trovato nel percorso " . $note['file_path'];
-                }
-            } else {
-                $note['contenuto'] = "Nessun percorso file associato a questo appunto.";
-            }
-        }
-
-        return $notes;
     }
 
 
