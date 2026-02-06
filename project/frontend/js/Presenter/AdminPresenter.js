@@ -42,14 +42,12 @@ class AdminPresenter {
     }
 
     async handleDeleteCourse(id) {
-        if (confirm("Vuoi eliminare questo corso?")) {
-            try {
-                console.log("AdminPresenter.handleDeleteCourse");
-                await this.model.deleteCourse(id);
-                this.init();
-            } catch (e) {
-                this.view.showError("Errore eliminazione: " + e.message);
-            }
+        try {
+            await this.model.deleteCourse(id);
+            this.view.showSuccess("Corso eliminato correttamente.");
+            this.init();
+        } catch (e) {
+            this.view.showError("Errore eliminazione: " + e.message);
         }
     }
 

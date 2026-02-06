@@ -59,8 +59,14 @@ class AdminView extends BaseView {
 
             const btnDel = this._createElement('button', 'btn btn-outline-danger btn-sm border-0');
             btnDel.innerHTML = '<i class="bi bi-trash3"></i>';
+
             btnDel.onclick = () => {
-                if (confirm(`Eliminare definitivamente "${item.nome || item.titolo}"?`)) callbacks.onDelete(item.id);
+                const nomeElemento = item.nome || item.titolo;
+                
+                this.showConfirm(`Sei sicuro di voler eliminare definitivamente <strong>"${nomeElemento}"</strong>?`, () => {
+                    callbacks.onDelete(item.id);
+                    this.showNotification("Richiesta di eliminazione inviata", "info");
+                });
             };
 
             div.append(span, btnDel);

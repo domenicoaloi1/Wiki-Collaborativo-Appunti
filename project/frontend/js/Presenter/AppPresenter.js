@@ -189,18 +189,22 @@ class AppPresenter {
     }
 
     async handleRestoreVersion(versioneId) {
-        if (!confirm("Sei sicuro di voler ripristinare questa versione? Il testo attuale verrà archiviato e sostituito.")) return;
-        try {
-            const result = await this.model.restoreVersion(versioneId, this.model.currentUser.id);
-            
-            const textarea = document.querySelector('textarea');
-            if (textarea) textarea.value = result.testo;
-            
-            this.view.hideHistory();
-            this.view.showSuccess("Versione ripristinata correttamente!");
-        } catch (e) {
-            this.view.showError(e.message);
-        }
+        const messaggio = "Sei sicuro di voler ripristinare questa versione? Il testo attuale verrà archiviato e sostituito.";
+        this.view.showConfirm(messaggio, async () => {
+            try {
+                const result = await this.model.restoreVersion(versioneId, this.model.currentUser.id);
+                const textarea = document.querySelector('textarea');
+                if (textarea) {
+                    textarea.value = result.testo;
+                }
+                if (typeof this.view.hideHistory === 'function') {
+                    this.view.hideHistory();
+                }
+                this.view.showSuccess("Versione ripristinata correttamente!");                
+            } catch (e) {
+                this.view.showError("Errore nel ripristino: " + e.message);
+            }
+        });
     }
 
     showCreateNote(argId) {
@@ -280,14 +284,16 @@ class AppPresenter {
     }
 
     async handleDeleteCourse(id) {
-        if (confirm("Sei sicuro? Eliminando il corso cancellerai anche tutti i suoi argomenti e appunti.")) {
+        const messaggio = "Sei sicuro? <strong>Eliminando il corso cancellerai anche tutti i suoi argomenti e appunti.</strong>";
+        this.view.showConfirm(messaggio, async () => {
             try {
                 await this.model.deleteCourse(id);
-                this.manageAdminCourses();
+                this.view.showSuccess("Corso e relativi contenuti eliminati.");
+                this.manageAdminCourses(); 
             } catch (e) {
-                this.view.showError(e.message);
+                this.view.showError("Impossibile eliminare il corso: " + e.message);
             }
-        }
+        });
     }
 
     // ----- Livello argomenti
@@ -321,14 +327,16 @@ class AppPresenter {
     }
 
     async handleDeleteArgomento(id, corsoId, corsoNome) {
-        if (confirm("Eliminare questo argomento e tutti i suoi appunti?")) {
+        const messaggio = "Sei sicuro di voler eliminare questo argomento? <strong>Verranno cancellati definitivamente anche tutti i suoi appunti.</strong>";
+        this.view.showConfirm(messaggio, async () => {
             try {
                 await this.model.deleteArgomento(id); 
+                this.view.showSuccess("Argomento e appunti eliminati con successo.");
                 this.manageAdminTopics(corsoId, corsoNome);
             } catch (e) {
-                this.view.showError(e.message);
+                this.view.showError("Errore durante l'eliminazione: " + e.message);
             }
-        }
+        });
     }
 
     // ----- Livello appunti
@@ -350,15 +358,16 @@ class AppPresenter {
     }
 
     async handleDeleteNote(id, argId, argNome, corsoId, corsoNome) {
-        if (confirm("Eliminare definitivamente questo appunto?")) {
+        const messaggio = "Sei sicuro di voler eliminare definitivamente questo appunto?";
+        this.view.showConfirm(messaggio, async () => {
             try {
                 await this.model.deleteNote(id);
+                this.view.showSuccess("Appunto eliminato correttamente.");
                 this.manageAdminNotes(argId, argNome, corsoId, corsoNome);
             } catch (e) {
-                this.view.showError(e.message);
+                this.view.showError("Errore durante l'eliminazione: " + e.message);
             }
-        }
+        });
     }
-
 
 }

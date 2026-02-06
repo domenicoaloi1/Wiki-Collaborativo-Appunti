@@ -62,4 +62,47 @@ class BaseView {
             toastEl.remove();
         });
     }
+
+    // --- CONFIRM ---
+
+    showConfirm(message, onConfirm) {
+        const oldModal = document.getElementById('dynamicConfirmModal');
+        if (oldModal) oldModal.remove();
+
+        const modalHtml = `
+            <div class="modal fade" id="dynamicConfirmModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow">
+                        <div class="modal-header bg-danger text-white">
+                            <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Conferma Azione</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <p class="fs-5 mb-0">${message}</p>
+                        </div>
+                        <div class="modal-footer border-0">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annulla</button>
+                            <button type="button" id="btn-modal-confirm" class="btn btn-danger px-4">Elimina</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        const modalElement = document.getElementById('dynamicConfirmModal');
+        const bsModal = new bootstrap.Modal(modalElement);
+        
+        document.getElementById('btn-modal-confirm').onclick = () => {
+            onConfirm();
+            bsModal.hide();
+        };
+
+        bsModal.show();
+
+        modalElement.addEventListener('hidden.bs.modal', () => {
+            modalElement.remove();
+        });
+    }
 }

@@ -39,3 +39,12 @@ body {
 .bg-info .btn-close {
     filter: none; /* Rimuove l'effetto bianco se presente */
 }
+
+#dynamicConfirmModal .modal-content {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+#dynamicConfirmModal .modal-header {
+    background: linear-gradient(45deg, #dc3545, #ff4d5a) !important;
+}
