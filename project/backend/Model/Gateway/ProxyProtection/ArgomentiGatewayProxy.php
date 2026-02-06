@@ -17,6 +17,13 @@ class ArgomentiGatewayProxy implements IArgomentiGateway {
         return $this->realGateway->getCorsoIdByArgomento($strategy);
     }
 
+    public function deleteArguments(FilterStrategy $strategy) {
+        if ($this->user && $this->user['ruolo'] === 'amministratore') {
+            return $this->realGateway->deleteArguments($strategy);
+        }
+        $this->unauthorized();
+    }
+
     public function createArgomento(int $corsoId, string $nome) {
         if ($this->user && $this->user['ruolo'] === 'amministratore') {
             return $this->realGateway->createArgomento($corsoId, $nome);

@@ -48,11 +48,14 @@ class CoursesGateway extends AbstractGateway implements ICoursesGateway{
         }
     }
 
-    public function updateCourse(int $id, string $nome, string $descrizione): void{
-        throw new Exception("Not Implemented Yet");
+    public function updateCourse(int $id, string $nome): void{
+        $this->pdo->prepare("UPDATE corsi SET nome = ? WHERE id = ?")
+        ->execute([$nome, $id]);
+        $this->pdo->commit();
     }
 
     public function deleteCourse(int $id): void{
-        throw new Exception("Not Implemented Yet");
+        $sql = "DELETE FROM corsi WHERE id = ?";
+        $this->pdo->prepare($sql)->execute([$id]);
     }
 }

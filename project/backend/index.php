@@ -253,7 +253,6 @@ $router->add('GET', '/appunto/storia', function() use ($versionsGateway, $userGa
         } catch (Exception $e) {
             $v['autore'] = 'Errore recupero';
         }
-        // Rimuoviamo l'utente_id dal JSON finale se non serve al frontend
         unset($v['utente_id']);
     }
 
@@ -325,24 +324,115 @@ $router->add('POST', '/corso/crea', function() use ($coursesGateway) {
 $router->add('POST', '/argomento/crea', function() use ($argomentiGateway) {
     $data = json_decode(file_get_contents('php://input'), true);
     try {
-        // throw new Exception("/argomento/crea Not Implemented Yet");
-        // $id = $argomentiGateway->createArgomento((int)$data['corso_id'], $data['nome']);
-        echo json_encode(["status" => "success"]);
-        // echo json_encode(["status" => "success", "id" => $id]);
+        $id = $argomentiGateway->createArgomento((int)$data['corso_id'], $data['nome']);
+        echo json_encode(["status" => "success", "id" => $id]);
     } catch (Exception $e) {
         http_response_code(403);
         echo json_encode(["error" => $e->getMessage()]);
     }
 });
 
+// RF10
+$router->add('POST', '/corso/elimina', function() use ($coursesGateway, $argomentiGateway, $notesGateway, $versionsGateway) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    try {
+        $listaArgomentiId = [];
+        $listaAppuntiId = [];
+
+        // getArgomenti
+        $courseStrategy = new CourseFilter((int)$data['id']);
+        $argomenti = $argomentiGateway->getArgomenti($courseStrategy);
+
+        foreach ($argomenti as $argomento) {
+            $listaArgomentiId[] = ((int)$argomento['id']);
+        }
+
+        // getAppunti
+        $argomentiIdInStrategy = new ArgomentiIdInFilter($listaArgomentiId);
+        $appunti = $notesGateway->getNotes($argomentiIdInStrategy);
+
+        foreach ($appunti as $appunto) {
+            $listaAppuntiId[] = ((int)$appunto['id']);
+        }
+
+        // delVersioni
+        $appuntoIdInFIlterStrategy = new AppuntoIdInFilter($listaAppuntiId);
+        $versionsGateway->deleteVersions($appuntoIdInFIlterStrategy);
+
+        // delAppunti
+        $listaAppuntiIdStrategy = new IdInFilter($listaAppuntiId);
+        $notesGateway->deleteNotes($listaAppuntiIdStrategy);
+
+        // delArgomenti
+        $listaArgomentiIdStrategy = new IdInFilter($listaArgomentiId);
+        $argomentiGateway->deleteArguments($listaArgomentiIdStrategy);
+
+        // delCorso
+        $coursesGateway->deleteCourse((int)$data['id']);
+
+        echo json_encode(["status" => "success"]);
+    } catch (Exception $e) {
+        http_response_code(403);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
+});
+
+// RF10
+$router->add('POST', '/argomento/elimina', function() use ($argomentiGateway, $notesGateway, $versionsGateway) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    try {
+        $listaAppuntiId = [];
+
+        // getAppunti
+        $argomentoStrategy = new ArgomentoFilter((int)$data['id']);
+        $appunti = $notesGateway->getNotes($argomentoStrategy);
+
+        foreach ($appunti as $appunto) {
+            $listaAppuntiId[] = ((int)$appunto['id']);
+        }
+
+        // delVersioni
+        $appuntoIdInFIlterStrategy = new AppuntoIdInFilter($listaAppuntiId);
+        $versionsGateway->deleteVersions($appuntoIdInFIlterStrategy);
+
+        // delAppunti
+        $listaAppuntiIdStrategy = new IdInFilter($listaAppuntiId);
+        $notesGateway->deleteNotes($listaAppuntiIdStrategy);
+
+        // delArgomento
+        $argomentiGateway->deleteArgomento((int)$data['id']);
+
+        echo json_encode(["status" => "success"]);
+    } catch (Exception $e) {
+        http_response_code(403);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
+});
+
+// RF10
+$router->add('POST', '/appunto/elimina', function() use ($notesGateway, $versionsGateway) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    try {
+        // delVersioni
+        $appuntoIdInFIlterStrategy = new AppuntoIdInFilter([(int)$data['id']]);
+        $versionsGateway->deleteVersions($appuntoIdInFIlterStrategy);
+
+        // delApunto
+        $notesGateway->deleteNote((int)$data['id']);
+
+        echo json_encode(["status" => "success"]);
+    } catch (Exception $e) {
+        http_response_code(403);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
+});
 
 // RF10
 $router->add('POST', '/corso/modifica', function() use ($coursesGateway) {
     $data = json_decode(file_get_contents('php://input'), true);
     try {
-        throw new Exception("/corso/modifica Not Implemented Yet");
-        // $coursesGateway->updateCourse((int)$data['id'], $data['nome'], $data['descrizione']);
-        // echo json_encode(["status" => "success"]);
+        $coursesGateway->updateCourse((int)$data['id'], $data['nome']);
+        echo json_encode(["status" => "success"]);
     } catch (Exception $e) {
         http_response_code(403);
         echo json_encode(["error" => $e->getMessage()]);
@@ -353,85 +443,8 @@ $router->add('POST', '/corso/modifica', function() use ($coursesGateway) {
 $router->add('POST', '/argomento/modifica', function() use ($argomentiGateway) {
     $data = json_decode(file_get_contents('php://input'), true);
     try {
-        throw new Exception("/argomento/modifica Not Implemented Yet");
-        // $argomentiGateway->updateArgomento((int)$data['id'], $data['nome']);
-        // echo json_encode(["status" => "success"]);
-    } catch (Exception $e) {
-        http_response_code(403);
-        echo json_encode(["error" => $e->getMessage()]);
-    }
-});
-
-// RF10
-$router->add('POST', '/corso/elimina', function() use ($coursesGateway, $argomentiGateway, $notesGateway, $versionsGateway) {
-    // di base per tutte le altre rotte l'idea è questa qui sotto abbozzata (ovviamente è la più lunga questa)
-    $data = json_decode(file_get_contents('php://input'), true);
-    try {
-        throw new Exception("/corso/elimina Not Implemented Yet");
-        // get argomenti da corso_id
-        // $courseStrategy = new CourseFilter((int)$data['id']);
-        // $argomenti = $argomentiGateway->getArgomenti($courseStrategy);
-        // // get appunti da argomento_id
-        // $listaArgomentiId = [];
-        // foreach ($argomenti as $argomento) {
-        //     $listaArgomentiId[] = ((int)$argomento['id']);
-        // }
-        // $argomentiIdGroupStrategy = new IdInFilter($listaArgomentiId);
-        // $appunti = $notesGateway->getNotes($argomentiIdGroupStrategy);
-
-        // // get versioni da appunti_id
-        // $listaAppuntiId = [];
-        // foreach ($appunti as $appunto) {
-        //     $listaAppuntiId[] = ((int)$appunto['id']);
-        // }
-
-        // no probabilmente no
-        // $appuntiIdGroupStrategy = new IdInFilter($listaAppuntiId);
-        // $versioni = $versionsGateway->getVersions($appuntiIdGroupStrategy);
-        // $listaVersioniId = [];
-        // foreach ($versioni as $versione) {
-        //     $listaVersioniId[] = ((int)$versione['id']);
-        // }
-
-        // delete versioni
-        // $versionsGateway->deleteVersionsOfNotes($listaAppuntiId);
-
-        // delete appunti
-        // $notesGateway->deleteNotesOfArgument($listaArgomentiId);
-
-        // delete argomenti
-        // $argomentiGateway->deleteNotesOfArgument((int)$data['id']);
-
-        // delete corsi
-        // $coursesGateway->deleteCourse((int)$data['id']);
-
-        // echo json_encode(["status" => "success"]);
-    } catch (Exception $e) {
-        http_response_code(403);
-        echo json_encode(["error" => $e->getMessage()]);
-    }
-});
-
-// RF10
-$router->add('POST', '/argomento/elimina', function() use ($argomentiGateway) {
-    $data = json_decode(file_get_contents('php://input'), true);
-    try {
-        throw new Exception("/argomento/elimina Not Implemented Yet");
-        // $argomentiGateway->deleteArgomento((int)$data['id']);
-        // echo json_encode(["status" => "success"]);
-    } catch (Exception $e) {
-        http_response_code(403);
-        echo json_encode(["error" => $e->getMessage()]);
-    }
-});
-
-// RF10
-$router->add('POST', '/appunto/elimina', function() use ($notesGateway) {
-    $data = json_decode(file_get_contents('php://input'), true);
-    try {
-        throw new Exception("/appunto/elimina Not Implemented Yet");
-        // $notesGateway->deleteNote((int)$data['id']);
-        // echo json_encode(["status" => "success"]);
+        $argomentiGateway->updateArgomento((int)$data['id'], $data['nome']);
+        echo json_encode(["status" => "success"]);
     } catch (Exception $e) {
         http_response_code(403);
         echo json_encode(["error" => $e->getMessage()]);

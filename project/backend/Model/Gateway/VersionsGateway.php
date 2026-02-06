@@ -73,7 +73,6 @@ class VersionsGateway extends AbstractGateway implements IVersionsGateway {
     }
 
     public function getVersions(FilterStrategy $strategy): array {
-        throw new Exception("Forse non necessaria");
         $qo = new QueryObject();
         $strategy->buildCriteria($qo);
 
@@ -103,4 +102,34 @@ class VersionsGateway extends AbstractGateway implements IVersionsGateway {
 
         return $versions;
     }
+
+    public function deleteVersions(FilterStrategy $strategy) {
+        try {
+            $qo = new QueryObject();
+            $strategy->buildCriteria($qo);
+
+            $params = [];
+            $baseSql = "DELETE FROM versioni"; 
+            $where = $this->buildWhereClause($qo, $params);
+
+            if (empty($where)) {
+                throw new Exception("Attenzione: clausola WHERE vuota. Rischio cancellazione totale!");
+            }
+
+            $this->pdo->beginTransaction();
+
+            $stmt = $this->pdo->prepare($baseSql . $where);
+            $stmt->execute($params);
+
+            $this->pdo->commit();
+            return true;
+
+        } catch (Exception $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $e;
+        }
+    }
+
 }

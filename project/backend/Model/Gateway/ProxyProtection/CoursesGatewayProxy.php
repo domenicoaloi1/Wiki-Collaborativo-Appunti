@@ -24,9 +24,9 @@ class CoursesGatewayProxy implements ICoursesGateway {
         $this->unauthorized();
     }
 
-    public function updateCourse(int $id, string $nome, string $descrizione): void {
+    public function updateCourse(int $id, string $nome): void {
         if ($this->user && $this->user['ruolo'] === 'amministratore') {
-            $this->realGateway->updateCourse($id, $nome, $descrizione);
+            $this->realGateway->updateCourse($id, $nome);
             return;
         }
         $this->unauthorized();

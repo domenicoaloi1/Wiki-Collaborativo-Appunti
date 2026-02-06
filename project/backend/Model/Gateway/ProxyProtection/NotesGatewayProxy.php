@@ -23,6 +23,13 @@ class NotesGatewayProxy implements INotesGateway {
         }
         $this->unauthorized();
     }
+
+    public function deleteNotes(FilterStrategy $strategy) {
+        if ($this->user && $this->user['ruolo'] === 'amministratore') {
+            return $this->realGateway->deleteNotes($strategy);
+        }
+        $this->unauthorized();
+    }
     
     public function deleteNotesOfArgument($argomento_id)  {
         if ($this->user && $this->user['ruolo'] === 'amministratore') {
