@@ -8,6 +8,8 @@ class AppModel extends EventEmitter{
         this.currentUser = savedUser ? JSON.parse(savedUser) : null;    
     }
 
+    // --- SIDEBAR ---
+
     async fetchCorsi() {
         try {
             const response = await fetch(`${this.apiBase}/corsi`, { credentials: 'include' });
@@ -24,6 +26,8 @@ class AppModel extends EventEmitter{
         if (!response.ok) throw new Error("Errore recupero argomenti");
         return await response.json();
     }
+
+    // --- MAIN-CONTENT ---
 
     async fetchAppunti(argomentoId) {
         const response = await fetch(`${this.apiBase}/appunti?argomento_id=${argomentoId}`, { credentials: 'include' });
@@ -43,23 +47,6 @@ class AppModel extends EventEmitter{
         return await response.json();
     }
 
-    async login(email, password) {
-        const response = await fetch(`${this.apiBase}/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
-            credentials: 'include'
-        });
-
-        if (!response.ok) throw new Error("Credenziali non valide");
-        
-        const data = await response.json();
-        this.currentUser = data.user; // Salviamo l'utente nel modello
-
-        localStorage.setItem('user', JSON.stringify(data.user));
-
-        return data.user;
-    }
 
     async createNote(argomentoId, utenteId, titolo, contenuto) {
         const response = await fetch(`${this.apiBase}/appunto/crea`, {
@@ -76,11 +63,10 @@ class AppModel extends EventEmitter{
         const data = await response.json();
 
         if (!response.ok) {
-            // Lanciamo l'errore specifico che arriva dal PHP
             throw new Error(data.error || "Errore durante la creazione");
         }
 
-        return data; // Ritorna {status: "success", id: ...}
+        return data;
     }
 
     async saveVersion(noteId, testo, utenteId) {
@@ -117,26 +103,63 @@ class AppModel extends EventEmitter{
         return await response.json();
     }
 
+    // --- LOGIN ---
+
+    async login(email, password) {
+        const response = await fetch(`${this.apiBase}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+            credentials: 'include'
+        });
+
+        if (!response.ok) throw new Error("Credenziali non valide");
+        
+        const data = await response.json();
+        this.currentUser = data.user; // Salviamo l'utente nel modello
+
+        localStorage.setItem('user', JSON.stringify(data.user));
+
+        return data.user;
+    }
+
+    // --- ADMIN ---
+
+    // ----- Corsi
+
     async createCourse(nome) {
-        console.log("Model.createCourse");
+
         const response = await fetch(`${this.apiBase}/corso/crea`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nome }),
             credentials: 'include'
         });
+
+        if (response.ok) {
+            this.emit('course:updated');
+        }
+
         return await response.json();
     }
 
     async deleteCourse(id) {
-        console.log("Model.deleteCourse");
-        return await fetch(`${this.apiBase}/corso/elimina`, {
+        const response = await fetch(`${this.apiBase}/corso/elimina`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id }),
             credentials: 'include'
-        }).then(res => res.json());
+        });
+
+        if (response.ok) {
+            this.emit('course:updated'); 
+        }
+
+        return await response.json();
+        
     }
+    
+    // ----- Argomenti
 
     async createArgomento(corsoId, nome) {
         const response = await fetch(`${this.apiBase}/argomento/crea`, {
@@ -147,8 +170,7 @@ class AppModel extends EventEmitter{
         });
         
         if (response.ok) {
-            // Notifichiamo che gli argomenti di questo corso sono cambiati
-            this.emit('topic:updated', corsoId); 
+            this.emit('arguments:updated', corsoId); 
         }
         return await response.json();
     }
@@ -162,19 +184,12 @@ class AppModel extends EventEmitter{
         });
         
         if (response.ok) {
-            this.emit('topic:updated', corsoId);
+            this.emit('arguments:updated', corsoId);
         }
         return await response.json();
     }
 
-    async deleteNote(id) {
-        return await fetch(`${this.apiBase}/appunto/elimina`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id }),
-            credentials: 'include'
-        }).then(res => res.json());
-    }
+    // ----- Appunti
 
     async createNote(argomentoId, titolo, contenuto) {
         const response = await fetch(`${this.apiBase}/appunto/crea`, {

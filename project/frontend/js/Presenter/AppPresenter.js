@@ -1,9 +1,10 @@
 // frontend/js/Presenter/AppPresenter.js
-
 class AppPresenter {
     constructor(model, view) {
         this.model = model;
         this.view = view;
+
+        this.model.on('course:updated', () => this.init());
     }
 
     async init() {
@@ -22,6 +23,8 @@ class AppPresenter {
         }
     }
 
+    // --- LOGICA AUTH/NAVBAR ---
+    
     bindNavbarEvents() {
         const btnLogin = document.getElementById('btn-login');
         if (btnLogin) btnLogin.onclick = () => this.showLogin();
@@ -33,7 +36,61 @@ class AppPresenter {
         if (btnLogout) btnLogout.onclick = () => this.handleLogout();
     }
 
-    // --- LOGICA CORSI E ARGOMENTI ---
+    showLogin() {
+        const authView = new AuthView();
+        authView.renderLoginForm(async (email, password) => {
+            try {
+                const user = await this.model.login(email, password);
+                this.view.updateNavbar(user);
+                this.bindNavbarEvents();
+
+                this.view.renderWelcomeUser(user, () => {
+                    this.handleShowAdminDashboard();
+                });
+
+                authView.showSuccess("Login riuscito.");
+                
+            } catch (e) {
+                authView.showError("Credenziali non valide.");
+            }
+        });
+    }
+
+    showRegister() {
+        const authView = new AuthView();
+        authView.renderRegisterForm(async (email, password) => {
+            try {
+                const response = await fetch(`${this.model.apiBase}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                if (!response.ok) throw new Error("Registrazione fallita");
+                authView.showSuccess("Registrazione ok! Ora accedi.");
+                this.showLogin();
+            } catch (e) {
+                authView.showError(e.message);
+            }
+        });
+    }
+
+    async handleLogout() {
+        try {
+            await fetch(`${this.model.apiBase}/logout`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            this.model.currentUser = null;
+            localStorage.removeItem('user');
+            location.reload();
+            this.view.showNotification("Logout avvenuto");
+        } catch (e) {
+            console.error("Errore durante il logout:", e);
+            location.reload();
+        }
+    }
+
+    // --- LOGICA SIDEBAR ---
 
     async handleCourseSelection(courseId) {
         try {
@@ -55,7 +112,6 @@ class AppPresenter {
                 this.handleViewNote(noteId);
             });
 
-            // Se l'utente è loggato, aggiungiamo il tasto per creare un nuovo appunto
             if (this.model.currentUser) {
                 const btnCreate = document.createElement('button');
                 btnCreate.className = 'btn btn-primary mt-3';
@@ -67,81 +123,7 @@ class AppPresenter {
             this.view.showError("Errore caricamento appunti.");
         }
     }
-
-    async handleViewNote(noteId) {
-        try {
-            const note = await this.model.fetchNoteDetail(noteId);
-            
-            // Verifichiamo se l'utente è loggato
-            const isLogged = this.model.currentUser !== null;
-
-            // Passiamo isLogged come parametro canEdit
-            const onSave = isLogged ? (testo) => this.handleSaveVersion(noteId, testo) : null;
-            const onShowHistory = isLogged ? () => this.handleShowHistory(noteId) : null;            
-            //console.log("handleViewNote");
-            // La View riceve il permesso di editing (isLogged)
-            const noteView = new NoteView();
-            noteView.renderNoteDetail(note, isLogged, onSave, onShowHistory);
-
-        } catch (e) {
-            this.view.showError("Impossibile caricare l'appunto.");
-        }
-    }
-
-    // --- LOGICA AUTH ---
-
-    showLogin() {
-        const authView = new AuthView();
-        authView.renderLoginForm(async (email, password) => {
-            try {
-                const user = await this.model.login(email, password);
-                this.view.updateNavbar(user);
-                this.bindNavbarEvents();
-
-                this.view.renderWelcomeUser(user, () => {
-                    console.log("Click rilevato nel Presenter principale!"); // Log di test 1
-                    this.handleShowAdminDashboard();
-                });
-                
-            } catch (e) {
-                authView.showError("Credenziali non valide.");
-            }
-        });
-    }
-
-    showRegister() {
-        const authView = new AuthView();
-        authView.renderRegisterForm(async (email, password) => {
-            try {
-                const response = await fetch(`${this.model.apiBase}/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-                if (!response.ok) throw new Error("Registrazione fallita");
-                alert("Registrazione ok! Ora accedi.");
-                this.showLogin();
-            } catch (e) {
-                authView.showError(e.message);
-            }
-        });
-    }
-
-    async handleLogout() {
-        try {
-            await fetch(`${this.model.apiBase}/logout`, {
-                method: 'POST',
-                credentials: 'include'
-            });
-            this.model.currentUser = null;
-            localStorage.removeItem('user');
-            location.reload(); 
-        } catch (e) {
-            console.error("Errore durante il logout:", e);
-            location.reload();
-        }
-    }
-
+    
     async handleSearch(query) {
         if (query.length < 2) return;
         try {
@@ -155,10 +137,28 @@ class AppPresenter {
         }
     }
 
+    // --- LOGICA MAIN-CONTENT NOTE/VERSIONI STUDENTE AUTH ---
+
+    async handleViewNote(noteId) {
+        try {
+            const note = await this.model.fetchNoteDetail(noteId);
+            const isLogged = this.model.currentUser !== null;
+
+            const onSave = isLogged ? (testo) => this.handleSaveVersion(noteId, testo) : null;
+            const onShowHistory = isLogged ? () => this.handleShowHistory(noteId) : null;            
+
+            const noteView = new NoteView();
+            noteView.renderNoteDetail(note, isLogged, onSave, onShowHistory);
+
+        } catch (e) {
+            this.view.showError("Impossibile caricare l'appunto.");
+        }
+    }
+
     async handleSaveVersion(noteId, testo) {
         try {
             await this.model.saveVersion(noteId, testo, this.model.currentUser.id);
-            alert("Nuova versione salvata con successo!");
+            this.view.showSuccess("Nuova versione salvata con successo!");
         } catch (e) {
             this.view.showError(e.message);
         }
@@ -170,8 +170,8 @@ class AppPresenter {
             const noteView = new NoteView();
             noteView.renderHistory(
                 history, 
-                (vId) => this.handleRestoreVersion(vId), // Callback Ripristina
-                (vId, date) => this.handlePreviewVersion(vId, date) // Callback Leggi
+                (vId) => this.handleRestoreVersion(vId),
+                (vId, date) => this.handlePreviewVersion(vId, date)
             );
         } catch (e) {
             this.view.showError("Errore nel caricamento della cronologia.");
@@ -197,7 +197,7 @@ class AppPresenter {
             if (textarea) textarea.value = result.testo;
             
             this.view.hideHistory();
-            alert("Versione ripristinata correttamente!");
+            this.view.showSuccess("Versione ripristinata correttamente!");
         } catch (e) {
             this.view.showError(e.message);
         }
@@ -208,7 +208,7 @@ class AppPresenter {
         noteView.renderCreateNoteForm(argId, async (titolo, contenuto) => {
             try {
                 const res = await this.model.createNote(argId, this.model.currentUser.id, titolo, contenuto);
-                alert("Appunto creato!");
+                this.view.showSuccess("Appunto creato!");
                 await this.handleViewNote(res.id);
             } catch (e) {
                 this.view.showError(e.message);
@@ -216,58 +216,54 @@ class AppPresenter {
         });
     }
 
-    // --- LIVELLO 1: CORSI ---
+    // --- ADMIN ---
+
+    handleShowAdminDashboard() {
+        console.log("Sto passando al modulo Admin...");
+        // Nascondiamo la sidebar se vogliamo "un'altra pagina" virtuale
+        // document.getElementById('sidebar-wrapper').style.display = 'none';
+        const adminView = new AdminView();        
+        const adminPresenter = new AdminPresenter(this.model, adminView);
+        adminPresenter.init();
+    }
+
+    goToHome() {
+        console.log("Pulsante Home premuto!");
+        const user = this.model.currentUser;
+        console.log("Navigazione Home - Utente:", user ? user.nome : "Ospite");        
+        
+        if (!user) {
+                console.warn("Nessun utente trovato, ritorno al login...");
+                this.view.renderGuestWelcome(() => this.showLogin());                
+                return;
+        }
+
+        this.view.renderWelcomeUser(user, () => {
+            console.log("Utente trovato, inizializzo AdminPresenter dalla Home...");
+            const adminView = new AdminView();
+            const adminPresenter = new AdminPresenter(this.model, adminView);
+            adminPresenter.init();
+        });
+    }
+
+    // ----- Livello corsi
+
     async manageAdminCourses() {
         try {
             const courses = await this.model.fetchCorsi();
             this.view.renderAdminList(
                 "Gestione Corsi",
                 courses,
-                null, // Nessun tasto indietro qui
+                null,
                 () => this.handleCreateCourse().then(() => this.manageAdminCourses()),
                 (id) => this.handleDeleteCourse(id).then(() => this.manageAdminCourses()),
-                (id, nome) => this.manageAdminTopics(id, nome) // Passa al livello 2
+                (id, nome) => this.manageAdminTopics(id, nome)
             );
         } catch (e) {
             this.view.showError("Errore caricamento corsi.");
         }
     }
 
-    // --- LIVELLO 2: ARGOMENTI ---
-    async manageAdminTopics(corsoId, corsoNome) {
-        try {
-            const topics = await this.model.fetchArgomenti(corsoId);
-            this.view.renderAdminList(
-                `Argomenti: ${corsoNome}`,
-                topics,
-                () => this.manageAdminCourses(), // Torna indietro ai corsi
-                () => this.handleCreateArgomento(corsoId).then(() => this.manageAdminTopics(corsoId, corsoNome)),
-                (id) => this.handleDeleteArgomento(id).then(() => this.manageAdminTopics(corsoId, corsoNome)),
-                (id, nome) => this.manageAdminNotes(id, nome, corsoId, corsoNome) // Passa al livello 3
-            );
-        } catch (e) {
-            this.view.showError("Errore caricamento argomenti.");
-        }
-    }
-
-    // --- LIVELLO 3: APPUNTI ---
-    async manageAdminNotes(argomentoId, argomentoNome, corsoId, corsoNome) {
-        try {
-            const notes = await this.model.fetchAppunti(argomentoId);
-            this.view.renderAdminList(
-                `Appunti: ${argomentoNome}`,
-                notes,
-                () => this.manageAdminTopics(corsoId, corsoNome), // Torna indietro agli argomenti
-                () => this.showCreateNote(argomentoId).then(() => this.manageAdminNotes(argomentoId, argomentoNome, corsoId, corsoNome)),
-                (id) => this.handleDeleteNote(id, argomentoId, argomentoNome).then(() => this.manageAdminNotes(argomentoId, argomentoNome, corsoId, corsoNome)),
-                null // Livello finale: non si clicca ulteriormente per ora
-            );
-        } catch (e) {
-            this.view.showError("Errore caricamento appunti.");
-        }
-    }
-
-    // --- HANDLER PER CORSI ---
     async handleCreateCourse() {
         const nome = prompt("Inserisci il nome del nuovo corso:");
         const descrizione = prompt("Inserisci una breve descrizione:");
@@ -275,8 +271,8 @@ class AppPresenter {
         if (nome && descrizione) {
             try {
                 await this.model.createCourse(nome, descrizione);
-                alert("Corso creato!");
-                this.manageAdminCourses(); // Ricarica la lista per vedere la modifica
+                this.view.showSuccess("Corso creato!");
+                this.manageAdminCourses();
             } catch (e) {
                 this.view.showError(e.message);
             }
@@ -287,20 +283,37 @@ class AppPresenter {
         if (confirm("Sei sicuro? Eliminando il corso cancellerai anche tutti i suoi argomenti e appunti.")) {
             try {
                 await this.model.deleteCourse(id);
-                this.manageAdminCourses(); // Aggiorna la lista
+                this.manageAdminCourses();
             } catch (e) {
                 this.view.showError(e.message);
             }
         }
     }
 
-    // --- HANDLER PER ARGOMENTI ---
+    // ----- Livello argomenti
+
+    async manageAdminTopics(corsoId, corsoNome) {
+        try {
+            const topics = await this.model.fetchArgomenti(corsoId);
+            this.view.renderAdminList(
+                `Argomenti: ${corsoNome}`,
+                topics,
+                () => this.manageAdminCourses(),
+                () => this.handleCreateArgomento(corsoId).then(() => this.manageAdminTopics(corsoId, corsoNome)),
+                (id) => this.handleDeleteArgomento(id).then(() => this.manageAdminTopics(corsoId, corsoNome)),
+                (id, nome) => this.manageAdminNotes(id, nome, corsoId, corsoNome)
+            );
+        } catch (e) {
+            this.view.showError("Errore caricamento argomenti.");
+        }
+    }
+
     async handleCreateArgomento(corsoId, corsoNome) {
         const nome = prompt("Nome del nuovo argomento:");
         if (nome) {
             try {
                 await this.model.createArgomento(corsoId, nome);
-                this.manageAdminTopics(corsoId, corsoNome); // Aggiorna lista argomenti
+                this.manageAdminTopics(corsoId, corsoNome);
             } catch (e) {
                 this.view.showError(e.message);
             }
@@ -318,44 +331,34 @@ class AppPresenter {
         }
     }
 
-    // --- HANDLER PER APPUNTI ---
+    // ----- Livello appunti
+
+    async manageAdminNotes(argomentoId, argomentoNome, corsoId, corsoNome) {
+        try {
+            const notes = await this.model.fetchAppunti(argomentoId);
+            this.view.renderAdminList(
+                `Appunti: ${argomentoNome}`,
+                notes,
+                () => this.manageAdminTopics(corsoId, corsoNome),
+                () => this.showCreateNote(argomentoId).then(() => this.manageAdminNotes(argomentoId, argomentoNome, corsoId, corsoNome)),
+                (id) => this.handleDeleteNote(id, argomentoId, argomentoNome).then(() => this.manageAdminNotes(argomentoId, argomentoNome, corsoId, corsoNome)),
+                null
+            );
+        } catch (e) {
+            this.view.showError("Errore caricamento appunti.");
+        }
+    }
+
     async handleDeleteNote(id, argId, argNome, corsoId, corsoNome) {
         if (confirm("Eliminare definitivamente questo appunto?")) {
             try {
                 await this.model.deleteNote(id);
-                this.manageAdminNotes(argId, argNome, corsoId, corsoNome); // Aggiorna lista appunti
+                this.manageAdminNotes(argId, argNome, corsoId, corsoNome);
             } catch (e) {
                 this.view.showError(e.message);
             }
         }
     }
 
-    handleShowAdminDashboard() {
-        console.log("Sto passando al modulo Admin...");
-        // Nascondiamo la sidebar se vogliamo "un'altra pagina" virtuale
-        // document.getElementById('sidebar-wrapper').style.display = 'none';
-        const adminView = new AdminView();        
-        // Inizializziamo il presenter dedicato
-        const adminPresenter = new AdminPresenter(this.model, adminView);
-        adminPresenter.init();
-    }
 
-    goToHome() {
-        console.log("Pulsante Home premuto!");
-        const user = this.model.currentUser;
-        console.log("Navigazione Home - Utente:", user ? user.nome : "Ospite");        
-        
-        if (!user) {
-                console.warn("Nessun utente trovato, ritorno al login...");
-                this.view.renderGuestWelcome(() => this.showLogin());                
-                return;
-        }
-        // Usiamo il metodo che abbiamo già creato e rifinito
-        this.view.renderWelcomeUser(user, () => {
-            console.log("Utente trovato, inizializzo AdminPresenter dalla Home...");
-            const adminView = new AdminView();
-            const adminPresenter = new AdminPresenter(this.model, adminView);
-            adminPresenter.init();
-        });
-    }
 }

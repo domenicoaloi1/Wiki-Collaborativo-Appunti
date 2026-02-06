@@ -5,25 +5,36 @@ class AdminPresenter {
             this.model = model;
             this.view = view;
 
-            this.model.on('course:created', () => this.init());
-            this.model.on('topic:updated', (id) => this.showTopics(id, this.currentCorsoNome));
-            
-            // Observer per gli Appunti
+            this.model.on('course:updated', () => this.init());
+            this.model.on('arguments:updated', (id) => this.showTopics(id, this.currentCorsoNome));
             this.model.on('note:updated', (id) => this.showNotes(id, this.currentArgNome, this.currentCorsoId, this.currentCorsoNome));
         } catch (error) {
             console.error(error);
             this.view.showError("Errore inizializzazione AdminPresenter.");
         }
     }
+
+    async init() {
+        this.currentCorsoId = null;
+        const courses = await this.model.fetchCorsi();
+        this.view.renderAdminDashboard("Gestione Corsi", courses, {
+            onSave: (nome) => this.handleSaveCourse(nome),
+            onDelete: (id) => this.handleDeleteCourse(id),
+            onSelect: (id, nome) => this.showTopics(id, nome),
+            onBack: null
+        });
+    }
     
+    // --- LOGICA CORSI ADMIN ---
+
     async handleSaveCourse(nome) {
         if (!nome || nome.trim().length < 3) {
-            alert("Il nome del corso è troppo corto!");
+            this.view.showNotification("Il nome del corso è troppo corto!");
             return;
         }
 
         try {
-            console.log("AdminPresenter.handleSaveCourse");
+            console.log("AdminPresenter.handleSaveCourse chiama model.createCourse");
             await this.model.createCourse(nome);
         } catch (e) {
             console.error("Errore salvataggio:", e);
@@ -42,19 +53,8 @@ class AdminPresenter {
         }
     }
 
-    // LIVELLO 1: Lista Corsi
-    async init() {
-        this.currentCorsoId = null;
-        const courses = await this.model.fetchCorsi();
-        this.view.renderAdminDashboard("Gestione Corsi", courses, {
-            onSave: (nome) => this.model.createCourse(nome, "Descrizione"),
-            onDelete: (id) => this.handleDeleteCourse(id),
-            onSelect: (id, nome) => this.showTopics(id, nome), // Cliccando sul nome
-            onBack: null // Siamo al primo livello
-        });
-    }
+    // --- LOGICA ARGOMENTI ADMIN ---
 
-    // LIVELLO 2: Lista Argomenti
     async showTopics(corsoId, corsoNome) {
         this.currentCorsoId = corsoId;
         this.currentCorsoNome = corsoNome;
@@ -64,11 +64,12 @@ class AdminPresenter {
             onSave: (nome) => this.model.createArgomento(corsoId, nome),
             onDelete: (id) => this.model.deleteArgomento(id, corsoId),
             onSelect: (id, nome) => this.showNotes(id, nome, corsoId, corsoNome),
-            onBack: () => this.init() // Torna ai corsi
+            onBack: () => this.init()
         });
     }
 
-    // LIVELLO 3: Lista Appunti
+    // --- LOGICA NOTE ADMIN ---
+
     async showNotes(argId, argNome, corsoId, corsoNome) {
         this.currentArgId = argId;
         this.currentArgNome = argNome;
@@ -77,10 +78,10 @@ class AdminPresenter {
 
         const notes = await this.model.fetchAppunti(argId);
         this.view.renderAdminDashboard(`Appunti di: ${argNome}`, notes, {
-            onSave: null, // <--- L'admin NON aggiunge appunti
+            onSave: null,
             onDelete: (id) => this.model.deleteNote(id, argId),
-            onSelect: null, // Ultimo livello, per ora non scendiamo oltre
-            onBack: () => this.showTopics(corsoId, corsoNome) // Torna agli argomenti
+            onSelect: null,
+            onBack: () => this.showTopics(corsoId, corsoNome)
         });
     }
 

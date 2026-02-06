@@ -1,11 +1,10 @@
 // js/View/AdminView.js
 class AdminView extends BaseView {
     constructor() {
-        super(); // Inizializza this.mainContent dalla base
+        super();
     }
 
     renderAdminDashboard(title, items, callbacks) {
-        // Verifichiamo se mostrare il form di aggiunta
         const showAddForm = callbacks.onSave !== null && callbacks.onSave !== undefined;
 
         this.mainContent.innerHTML = `
@@ -34,7 +33,6 @@ class AdminView extends BaseView {
             </div>
         `;
 
-        // Binding eventi (solo se esistono)
         if (callbacks.onBack) document.getElementById('btn-admin-back').onclick = callbacks.onBack;
         
         if (showAddForm) {
@@ -47,7 +45,6 @@ class AdminView extends BaseView {
             };
         }
 
-        // Render della lista (rimane uguale a prima)
         const list = document.getElementById('admin-data-list');
         items.forEach(item => {
             const div = this._createElement('div', 'list-group-item d-flex justify-content-between align-items-center');
