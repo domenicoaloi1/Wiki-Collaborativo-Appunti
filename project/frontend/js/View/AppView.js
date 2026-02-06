@@ -32,9 +32,17 @@ class AppView {
 
     // --- RENDERING SIDEBAR ---
 
-    renderSidebar(courses, onCourseClick) {
+    renderSidebar(courses, onCourseClick, onHomeClick) {
         if (!this.sidebarContainer) return;
-        this.sidebarContainer.innerHTML = ''; 
+        this.sidebarContainer.innerHTML = '';
+
+        // --- NUOVO: TASTO HOME ---
+        // const btnHome = this._createElement('button', 'btn btn-outline-primary w-100 mb-3 d-flex align-items-center justify-content-center');
+        // btnHome.innerHTML = '<i class="bi bi-house-door-fill me-2"></i> Home';
+        // btnHome.onclick = onHomeClick;
+        
+        // this.sidebarContainer.appendChild(btnHome);
+        // -------------------------
 
         courses.forEach(course => {
             const container = this._createElement('div', 'course-group mb-2');
@@ -113,6 +121,7 @@ class AppView {
 
         this.mainContent.appendChild(container);
     }
+
     renderList(notes, contextTitle, onNoteClick) {
         if (!this.mainContent) return;
         this.mainContent.innerHTML = '';
@@ -424,4 +433,92 @@ class AppView {
         container.append(header, btnWrapper, list);
         this.mainContent.appendChild(container);
     }
+
+    renderAdminDashboard(title, items, callbacks) {
+        // Verifichiamo se mostrare il form di aggiunta
+        const showAddForm = callbacks.onSave !== null && callbacks.onSave !== undefined;
+
+        this.mainContent.innerHTML = `
+            <div class="p-4 bg-light border-bottom mb-4 d-flex align-items-center">
+                ${callbacks.onBack ? '<button id="btn-admin-back" class="btn btn-outline-secondary btn-sm me-3"><i class="bi bi-arrow-left"></i></button>' : ''}
+                <h2 class="text-primary m-0"><i class="bi bi-gear-fill me-2"></i>${title}</h2>
+            </div>
+            <div class="container">
+                ${showAddForm ? `
+                    <div class="card mb-4 shadow-sm border-primary animate__animated animate__fadeIn">
+                        <div class="card-body">
+                            <label class="form-label fw-bold">Aggiungi nuovo elemento:</label>
+                            <div class="input-group">
+                                <input type="text" id="admin-input-name" class="form-control" placeholder="Inserisci nome...">
+                                <button id="btn-admin-save" class="btn btn-primary">Salva</button>
+                            </div>
+                        </div>
+                    </div>
+                ` : `
+                    <div class="alert alert-info mb-4 shadow-sm">
+                        <i class="bi bi-info-circle-fill me-2"></i> 
+                        In questa sezione puoi solo moderare o eliminare gli elementi esistenti.
+                    </div>
+                `}
+                <div class="list-group shadow-sm" id="admin-data-list"></div>
+            </div>
+        `;
+
+        // Binding eventi (solo se esistono)
+        if (callbacks.onBack) document.getElementById('btn-admin-back').onclick = callbacks.onBack;
+        
+        if (showAddForm) {
+            document.getElementById('btn-admin-save').onclick = () => {
+                const val = document.getElementById('admin-input-name').value.trim();
+                if (val) {
+                    callbacks.onSave(val);
+                    document.getElementById('admin-input-name').value = '';
+                }
+            };
+        }
+
+        // Render della lista (rimane uguale a prima)
+        const list = document.getElementById('admin-data-list');
+        items.forEach(item => {
+            const div = this._createElement('div', 'list-group-item d-flex justify-content-between align-items-center');
+            const span = this._createElement('span', 'flex-grow-1 py-2');
+            span.textContent = item.nome || item.titolo; 
+            
+            if (callbacks.onSelect) {
+                span.style.cursor = 'pointer';
+                span.classList.add('fw-bold', 'text-primary');
+                span.onclick = () => callbacks.onSelect(item.id, item.nome || item.titolo);
+            }
+
+            const btnDel = this._createElement('button', 'btn btn-outline-danger btn-sm border-0');
+            btnDel.innerHTML = '<i class="bi bi-trash3"></i>';
+            btnDel.onclick = () => {
+                if (confirm(`Eliminare definitivamente "${item.nome || item.titolo}"?`)) callbacks.onDelete(item.id);
+            };
+
+            div.append(span, btnDel);
+            list.appendChild(div);
+        });
+    }
+
+    renderGuestWelcome(onLoginClick) {
+        this.mainContent.innerHTML = '';
+        const container = this._createElement('div', 'text-center mt-5 p-5');
+        
+        container.innerHTML = `
+            <h1 class="display-4 fw-bold text-primary mb-4">Benvenuto nel Catalogo Appunti</h1>
+            <p class="lead mb-4">Naviga tra i corsi nella sidebar per consultare i materiali disponibili.</p>
+            <div class="alert alert-info d-inline-block shadow-sm">
+                <i class="bi bi-info-circle me-2"></i>
+                Vuoi caricare i tuoi appunti o gestire il catalogo?
+                <button id="btn-welcome-login" class="btn btn-link fw-bold p-0 ms-1">Accedi ora</button>
+            </div>
+        `;
+        
+        this.mainContent.appendChild(container);
+        
+        // Se l'utente preme "Accedi ora", apriamo il login
+        document.getElementById('btn-welcome-login').onclick = onLoginClick;
+    }
+
 }

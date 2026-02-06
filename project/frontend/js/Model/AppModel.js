@@ -1,9 +1,11 @@
 // frontend/js/Model/AppModel.js
-class AppModel {
+class AppModel extends EventEmitter{
     constructor() {
+        super();
         this.courses = [];
         this.apiBase = 'http://localhost:8000';
-        this.currentUser = JSON.parse(localStorage.getItem('user')) || null;
+        const savedUser = localStorage.getItem('user');
+        this.currentUser = savedUser ? JSON.parse(savedUser) : null;    
     }
 
     async fetchCorsi() {
@@ -52,6 +54,9 @@ class AppModel {
         
         const data = await response.json();
         this.currentUser = data.user; // Salviamo l'utente nel modello
+
+        localStorage.setItem('user', JSON.stringify(data.user));
+
         return data.user;
     }
 
@@ -131,15 +136,25 @@ class AppModel {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ corso_id: corsoId, nome })
         });
+        
+        if (response.ok) {
+            // Notifichiamo che gli argomenti di questo corso sono cambiati
+            this.emit('topic:updated', corsoId); 
+        }
         return await response.json();
     }
 
-    async deleteArgomento(id) {
-        return await fetch(`${this.apiBase}/argomento/elimina`, {
+    async deleteArgomento(id, corsoId) {
+        const response = await fetch(`${this.apiBase}/argomento/elimina`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id })
-        }).then(res => res.json());
+        });
+        
+        if (response.ok) {
+            this.emit('topic:updated', corsoId);
+        }
+        return await response.json();
     }
 
     async deleteNote(id) {
@@ -148,6 +163,33 @@ class AppModel {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id })
         }).then(res => res.json());
+    }
+
+    async createNote(argomentoId, titolo, contenuto) {
+        const response = await fetch(`${this.apiBase}/appunto/crea`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ argomento_id: argomentoId, titolo, contenuto })
+        });
+        
+        if (response.ok) {
+            // Notifichiamo che gli appunti di questo argomento sono cambiati
+            this.emit('note:updated', argomentoId); 
+        }
+        return await response.json();
+    }
+
+    async deleteNote(id, argomentoId) {
+        const response = await fetch(`${this.apiBase}/appunto/elimina`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+        });
+        
+        if (response.ok) {
+            this.emit('note:updated', argomentoId);
+        }
+        return await response.json();
     }
 
 }

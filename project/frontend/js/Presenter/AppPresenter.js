@@ -11,14 +11,14 @@ class AppPresenter {
             const courses = await this.model.fetchCorsi();
 
             this.view.renderSidebar(courses, (id) => this.handleCourseSelection(id));
-            
             this.view.bindSearch((query) => this.handleSearch(query));
-            
             this.view.updateNavbar(this.model.currentUser);
-            
             this.bindNavbarEvents();
+
+            this.goToHome();
         } catch (error) {
-            this.view.showError("Errore inizializzazione.");
+            console.error(error);
+            this.view.showError("Errore inizializzazione AppPresenter.");
         }
     }
 
@@ -94,7 +94,10 @@ class AppPresenter {
                 this.view.updateNavbar(user);
                 this.bindNavbarEvents();
 
-                this.view.renderWelcomeUser(user, () => this.manageAdminCourses());
+                this.view.renderWelcomeUser(user, () => {
+                    console.log("Click rilevato nel Presenter principale!"); // Log di test 1
+                    this.handleShowAdminDashboard();
+                });
                 
             } catch (e) {
                 this.view.showError("Credenziali non valide.");
@@ -121,6 +124,7 @@ class AppPresenter {
 
     handleLogout() {
         this.model.currentUser = null;
+        localStorage.removeItem('user');
         this.view.updateNavbar(null);
         this.bindNavbarEvents();
         location.reload(); 
@@ -308,5 +312,33 @@ class AppPresenter {
                 this.view.showError(e.message);
             }
         }
+    }
+
+    handleShowAdminDashboard() {
+        console.log("Sto passando al modulo Admin...");
+        // Nascondiamo la sidebar se vogliamo "un'altra pagina" virtuale
+        // document.getElementById('sidebar-wrapper').style.display = 'none';
+        
+        // Inizializziamo il presenter dedicato
+        const admin = new AdminPresenter(this.model, this.view);
+        admin.init();
+    }
+
+    goToHome() {
+        console.log("Pulsante Home premuto!");
+        const user = this.model.currentUser;
+        console.log("Navigazione Home - Utente:", user ? user.nome : "Ospite");        
+        
+        if (!user) {
+                console.warn("Nessun utente trovato, ritorno al login...");
+                this.view.renderGuestWelcome(() => this.showLogin());                
+                return;
+        }
+        // Usiamo il metodo che abbiamo già creato e rifinito
+        this.view.renderWelcomeUser(user, () => {
+            console.log("Utente trovato, inizializzo AdminPresenter dalla Home...");
+            const adminPresenter = new AdminPresenter(this.model, this.view);
+            adminPresenter.init();
+        });
     }
 }
