@@ -49,7 +49,9 @@ class AppPresenter {
     async handleArgomentoSelection(argId, argNome) {
         try {
             const appunti = await this.model.fetchAppunti(argId);
-            this.view.renderList(appunti, `Appunti: ${argNome}`, (noteId) => {
+            
+            const noteView = new NoteView();
+            noteView.renderList(appunti, `Appunti: ${argNome}`, (noteId) => {
                 this.handleViewNote(noteId);
             });
 
@@ -75,10 +77,11 @@ class AppPresenter {
 
             // Passiamo isLogged come parametro canEdit
             const onSave = isLogged ? (testo) => this.handleSaveVersion(noteId, testo) : null;
-            const onShowHistory = () => this.handleShowHistory(noteId);
-
+            const onShowHistory = isLogged ? () => this.handleShowHistory(noteId) : null;            
+            //console.log("handleViewNote");
             // La View riceve il permesso di editing (isLogged)
-            this.view.renderNoteDetail(note, isLogged, onSave, onShowHistory);
+            const noteView = new NoteView();
+            noteView.renderNoteDetail(note, isLogged, onSave, onShowHistory);
 
         } catch (e) {
             this.view.showError("Impossibile caricare l'appunto.");
@@ -136,7 +139,8 @@ class AppPresenter {
         if (query.length < 2) return;
         try {
             const results = await this.model.searchNotes(query);
-            this.view.renderList(results, `Risultati per: "${query}"`, (noteId) => {
+            const noteView = new NoteView();
+            noteView.renderList(results, `Risultati per: "${query}"`, (noteId) => {
                 this.handleViewNote(noteId, null, null);
             });
         } catch (e) {
@@ -156,7 +160,8 @@ class AppPresenter {
     async handleShowHistory(noteId) {
         try {
             const history = await this.model.fetchStoria(noteId);
-            this.view.renderHistory(
+            const noteView = new NoteView();
+            noteView.renderHistory(
                 history, 
                 (vId) => this.handleRestoreVersion(vId), // Callback Ripristina
                 (vId, date) => this.handlePreviewVersion(vId, date) // Callback Leggi
@@ -169,7 +174,8 @@ class AppPresenter {
     async handlePreviewVersion(versioneId, dataModifica) {
         try {
             const res = await this.model.fetchVersionPreview(versioneId);
-            this.view.showVersionPreview(res.testo, dataModifica);
+            const noteView = new NoteView();
+            noteView.showVersionPreview(res.testo, dataModifica);
         } catch (e) {
             this.view.showError("Impossibile caricare l'anteprima della versione.");
         }
@@ -191,7 +197,8 @@ class AppPresenter {
     }
 
     showCreateNote(argId) {
-        this.view.renderCreateNoteForm(argId, async (titolo, contenuto) => {
+        const noteView = new NoteView();
+        noteView.renderCreateNoteForm(argId, async (titolo, contenuto) => {
             try {
                 const res = await this.model.createNote(argId, this.model.currentUser.id, titolo, contenuto);
                 alert("Appunto creato!");
