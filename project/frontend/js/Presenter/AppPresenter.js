@@ -318,10 +318,10 @@ class AppPresenter {
         console.log("Sto passando al modulo Admin...");
         // Nascondiamo la sidebar se vogliamo "un'altra pagina" virtuale
         // document.getElementById('sidebar-wrapper').style.display = 'none';
-        
+        const adminView = new AdminView();        
         // Inizializziamo il presenter dedicato
-        const admin = new AdminPresenter(this.model, this.view);
-        admin.init();
+        const adminPresenter = new AdminPresenter(this.model, adminView);
+        adminPresenter.init();
     }
 
     goToHome() {
@@ -337,7 +337,8 @@ class AppPresenter {
         // Usiamo il metodo che abbiamo già creato e rifinito
         this.view.renderWelcomeUser(user, () => {
             console.log("Utente trovato, inizializzo AdminPresenter dalla Home...");
-            const adminPresenter = new AdminPresenter(this.model, this.view);
+            const adminView = new AdminView();
+            const adminPresenter = new AdminPresenter(this.model, adminView);
             adminPresenter.init();
         });
     }
