@@ -127,12 +127,19 @@ class AppPresenter {
         });
     }
 
-    handleLogout() {
-        this.model.currentUser = null;
-        localStorage.removeItem('user');
-        this.view.updateNavbar(null);
-        this.bindNavbarEvents();
-        location.reload(); 
+    async handleLogout() {
+        try {
+            await fetch(`${this.model.apiBase}/logout`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            this.model.currentUser = null;
+            localStorage.removeItem('user');
+            location.reload(); 
+        } catch (e) {
+            console.error("Errore durante il logout:", e);
+            location.reload();
+        }
     }
 
     async handleSearch(query) {

@@ -17,9 +17,9 @@ class CoursesGatewayProxy implements ICoursesGateway {
         return $this->realGateway->findAll();
     }
 
-    public function createCourse(string $nome, string $descrizione){
+    public function createCourse(string $nome){
         if ($this->user && $this->user['ruolo'] === 'amministratore') {
-            return $this->realGateway->createCourse($nome, $descrizione);
+            return $this->realGateway->createCourse($nome);
         }
         $this->unauthorized();
     }

@@ -1,11 +1,13 @@
 <?php
 // backend/index.php
-session_start();
+
 // REST + CORS
 header("Access-Control-Allow-Origin: http://localhost:8080");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header('Content-Type: application/json; charset=utf-8');
+header('Access-Control-Allow-Credentials: true');
+session_start();
 
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     http_response_code(200);
@@ -113,6 +115,11 @@ $router->add('GET', '/cerca', function() use ($notesGateway) {
 // RF2
 $router->add('POST', '/login', function() use ($userGateway) {
     // Leggiamo i dati JSON dal corpo della richiesta
+
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
     $data = json_decode(file_get_contents('php://input'), true);
     $email = $data['email'] ?? '';
     $password = $data['password'] ?? '';
@@ -120,8 +127,8 @@ $router->add('POST', '/login', function() use ($userGateway) {
     $user = $userGateway->getUser(new EmailFilter($email));
 
     if ($user && hash('sha256', $password) === $user['password']) {
-        // Login successo! Ritorna i dati dell'utente (senza la password)
         unset($user['password']);
+        $_SESSION['user'] = $user;
         echo json_encode([
             "status" => "success",
             "user" => $user
@@ -134,9 +141,12 @@ $router->add('POST', '/login', function() use ($userGateway) {
 
 // RF2
 $router->add('POST', '/logout', function() {
-    session_start();
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    $_SESSION = array();
     session_destroy();
-    echo json_encode(["status" => "success"]);
+    echo json_encode(["status" => "success", "message" => "Sessione chiusa"]);
 });
 
 // RF1
@@ -301,23 +311,10 @@ $router->add('POST', '/appunto/versione/ripristina', function() use ($versionsGa
 // RF10
 $router->add('POST', '/corso/crea', function() use ($coursesGateway) {
     $data = json_decode(file_get_contents('php://input'), true);
+    // error_log(print_r($_SESSION, true));
     try {
-        throw new Exception("/corso/crea Not Implemented Yet");
-        // $id = $coursesGateway->createCourse($data['nome'], $data['descrizione']);
-        // echo json_encode(["status" => "success", "id" => $id]);
-    } catch (Exception $e) {
-        http_response_code(403);
-        echo json_encode(["error" => $e->getMessage()]);
-    }
-});
-
-// RF10
-$router->add('POST', '/corso/modifica', function() use ($coursesGateway) {
-    $data = json_decode(file_get_contents('php://input'), true);
-    try {
-        throw new Exception("/corso/modifica Not Implemented Yet");
-        // $coursesGateway->updateCourse((int)$data['id'], $data['nome'], $data['descrizione']);
-        // echo json_encode(["status" => "success"]);
+        $id = $coursesGateway->createCourse($data['nome']);
+        echo json_encode(["status" => "success", "id" => $id]);
     } catch (Exception $e) {
         http_response_code(403);
         echo json_encode(["error" => $e->getMessage()]);
@@ -328,9 +325,24 @@ $router->add('POST', '/corso/modifica', function() use ($coursesGateway) {
 $router->add('POST', '/argomento/crea', function() use ($argomentiGateway) {
     $data = json_decode(file_get_contents('php://input'), true);
     try {
-        throw new Exception("/argomento/crea Not Implemented Yet");
+        // throw new Exception("/argomento/crea Not Implemented Yet");
         // $id = $argomentiGateway->createArgomento((int)$data['corso_id'], $data['nome']);
+        echo json_encode(["status" => "success"]);
         // echo json_encode(["status" => "success", "id" => $id]);
+    } catch (Exception $e) {
+        http_response_code(403);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
+});
+
+
+// RF10
+$router->add('POST', '/corso/modifica', function() use ($coursesGateway) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    try {
+        throw new Exception("/corso/modifica Not Implemented Yet");
+        // $coursesGateway->updateCourse((int)$data['id'], $data['nome'], $data['descrizione']);
+        // echo json_encode(["status" => "success"]);
     } catch (Exception $e) {
         http_response_code(403);
         echo json_encode(["error" => $e->getMessage()]);

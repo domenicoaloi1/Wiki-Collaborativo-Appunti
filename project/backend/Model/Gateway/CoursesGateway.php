@@ -33,8 +33,19 @@ class CoursesGateway extends AbstractGateway implements ICoursesGateway{
         return $this->getCourses(new NoFilter());
     }
     
-    public function createCourse(string $nome, string $descrizione): int{
-        throw new Exception("Not Implemented Yet");
+    public function createCourse(string $nome): int{
+        $this->pdo->beginTransaction();
+        try {
+            // Inserimento (file_path DEFAULT NULL)
+            $sql = "INSERT INTO corsi (nome) VALUES (?)";
+            $this->pdo->prepare($sql)->execute([$nome]);
+            $newId = (int)$this->pdo->lastInsertId();
+            $this->pdo->commit();
+            return $newId;
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
     }
 
     public function updateCourse(int $id, string $nome, string $descrizione): void{

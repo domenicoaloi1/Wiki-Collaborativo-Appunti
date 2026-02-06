@@ -10,7 +10,7 @@ class AppModel extends EventEmitter{
 
     async fetchCorsi() {
         try {
-            const response = await fetch(`${this.apiBase}/corsi`);
+            const response = await fetch(`${this.apiBase}/corsi`, { credentials: 'include' });
             if (!response.ok) throw new Error("Risorsa non disponibile");
             this.courses = await response.json();
             return this.courses; 
@@ -20,25 +20,25 @@ class AppModel extends EventEmitter{
     }
 
     async fetchArgomenti(courseId) {
-        const response = await fetch(`${this.apiBase}/argomenti?corso_id=${courseId}`);
+        const response = await fetch(`${this.apiBase}/argomenti?corso_id=${courseId}`, { credentials: 'include' });
         if (!response.ok) throw new Error("Errore recupero argomenti");
         return await response.json();
     }
 
     async fetchAppunti(argomentoId) {
-        const response = await fetch(`${this.apiBase}/appunti?argomento_id=${argomentoId}`);
+        const response = await fetch(`${this.apiBase}/appunti?argomento_id=${argomentoId}`, { credentials: 'include' });
         if (!response.ok) throw new Error("Errore recupero appunti");
         return await response.json();
     }
 
     async fetchNoteDetail(noteId) {
-        const response = await fetch(`${this.apiBase}/appunto?id=${noteId}`);
+        const response = await fetch(`${this.apiBase}/appunto?id=${noteId}`, { credentials: 'include' });
         if (!response.ok) throw new Error("Errore nel recupero del contenuto");
         return await response.json();
     }
 
     async searchNotes(query) {
-        const response = await fetch(`${this.apiBase}/cerca?q=${encodeURIComponent(query)}`);
+        const response = await fetch(`${this.apiBase}/cerca?q=${encodeURIComponent(query)}`, { credentials: 'include' });
         if (!response.ok) throw new Error("Errore nella ricerca");
         return await response.json();
     }
@@ -47,7 +47,8 @@ class AppModel extends EventEmitter{
         const response = await fetch(`${this.apiBase}/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({ email, password }),
+            credentials: 'include'
         });
 
         if (!response.ok) throw new Error("Credenziali non valide");
@@ -69,7 +70,8 @@ class AppModel extends EventEmitter{
                 utente_id: utenteId,
                 titolo: titolo,
                 contenuto: contenuto
-            })
+            }),
+            credentials: 'include'
         });
         const data = await response.json();
 
@@ -85,20 +87,21 @@ class AppModel extends EventEmitter{
         const response = await fetch(`${this.apiBase}/appunto/versione/salva`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: noteId, testo, utente_id: utenteId })
+            body: JSON.stringify({ id: noteId, testo, utente_id: utenteId }),
+            credentials: 'include'
         });
         if (!response.ok) throw new Error("Errore nel salvataggio della versione");
         return await response.json();
     }
 
     async fetchStoria(noteId) {
-        const response = await fetch(`${this.apiBase}/appunto/storia?id=${noteId}`);
+        const response = await fetch(`${this.apiBase}/appunto/storia?id=${noteId}`, { credentials: 'include' });
         if (!response.ok) throw new Error("Errore nel recupero della cronologia");
         return await response.json();
     }
 
     async fetchVersionPreview(versioneId) {
-        const response = await fetch(`${this.apiBase}/appunto/versione/visualizza?versione_id=${versioneId}`);
+        const response = await fetch(`${this.apiBase}/appunto/versione/visualizza?versione_id=${versioneId}`, { credentials: 'include' });
         if (!response.ok) throw new Error("Errore nel recupero dell'anteprima");
         return await response.json();
     }
@@ -107,26 +110,31 @@ class AppModel extends EventEmitter{
         const response = await fetch(`${this.apiBase}/appunto/versione/ripristina`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ versione_id: versioneId, utente_id: utenteId })
+            body: JSON.stringify({ versione_id: versioneId, utente_id: utenteId }),
+            credentials: 'include'
         });
         if (!response.ok) throw new Error("Errore nel ripristino della versione");
         return await response.json();
     }
 
-    async createCourse(nome, descrizione) {
+    async createCourse(nome) {
+        console.log("Model.createCourse");
         const response = await fetch(`${this.apiBase}/corso/crea`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nome, descrizione })
+            body: JSON.stringify({ nome }),
+            credentials: 'include'
         });
         return await response.json();
     }
 
     async deleteCourse(id) {
+        console.log("Model.deleteCourse");
         return await fetch(`${this.apiBase}/corso/elimina`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id })
+            body: JSON.stringify({ id }),
+            credentials: 'include'
         }).then(res => res.json());
     }
 
@@ -134,7 +142,8 @@ class AppModel extends EventEmitter{
         const response = await fetch(`${this.apiBase}/argomento/crea`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ corso_id: corsoId, nome })
+            body: JSON.stringify({ corso_id: corsoId, nome }),
+            credentials: 'include'
         });
         
         if (response.ok) {
@@ -148,7 +157,8 @@ class AppModel extends EventEmitter{
         const response = await fetch(`${this.apiBase}/argomento/elimina`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id })
+            body: JSON.stringify({ id }),
+            credentials: 'include'
         });
         
         if (response.ok) {
@@ -161,7 +171,8 @@ class AppModel extends EventEmitter{
         return await fetch(`${this.apiBase}/appunto/elimina`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id })
+            body: JSON.stringify({ id }),
+            credentials: 'include'
         }).then(res => res.json());
     }
 
@@ -169,11 +180,11 @@ class AppModel extends EventEmitter{
         const response = await fetch(`${this.apiBase}/appunto/crea`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ argomento_id: argomentoId, titolo, contenuto })
+            body: JSON.stringify({ argomento_id: argomentoId, titolo, contenuto }),
+            credentials: 'include'
         });
         
         if (response.ok) {
-            // Notifichiamo che gli appunti di questo argomento sono cambiati
             this.emit('note:updated', argomentoId); 
         }
         return await response.json();
@@ -183,7 +194,8 @@ class AppModel extends EventEmitter{
         const response = await fetch(`${this.apiBase}/appunto/elimina`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id })
+            body: JSON.stringify({ id }),
+            credentials: 'include'
         });
         
         if (response.ok) {

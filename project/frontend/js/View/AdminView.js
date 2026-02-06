@@ -20,7 +20,7 @@ class AdminView extends BaseView {
                             <label class="form-label fw-bold">Aggiungi nuovo elemento:</label>
                             <div class="input-group">
                                 <input type="text" id="admin-input-name" class="form-control" placeholder="Inserisci nome...">
-                                <button id="btn-admin-save" class="btn btn-primary">Salva</button>
+                                <button id="btn-admin-save" class="bi bi-plus-circle me-2 btn btn-success"> Aggiungi</button>
                             </div>
                         </div>
                     </div>

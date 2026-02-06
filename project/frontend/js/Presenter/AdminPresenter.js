@@ -16,15 +16,15 @@ class AdminPresenter {
         }
     }
     
-    async handleSaveCourse(nome, desc) {
+    async handleSaveCourse(nome) {
         if (!nome || nome.trim().length < 3) {
             alert("Il nome del corso è troppo corto!");
             return;
         }
 
         try {
-            await this.model.createCourse(nome, desc);
-            // L'UI si aggiorna da sola grazie all'evento!
+            console.log("AdminPresenter.handleSaveCourse");
+            await this.model.createCourse(nome);
         } catch (e) {
             console.error("Errore salvataggio:", e);
         }
@@ -33,8 +33,9 @@ class AdminPresenter {
     async handleDeleteCourse(id) {
         if (confirm("Vuoi eliminare questo corso?")) {
             try {
+                console.log("AdminPresenter.handleDeleteCourse");
                 await this.model.deleteCourse(id);
-                this.init(); // Per l'eliminazione facciamo il refresh manuale
+                this.init();
             } catch (e) {
                 this.view.showError("Errore eliminazione: " + e.message);
             }
