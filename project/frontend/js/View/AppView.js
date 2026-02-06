@@ -180,60 +180,6 @@ class AppView extends BaseView{
         this.mainContent.appendChild(container);
     }
 
-    // --- FORMS (LOGIN & REGISTER) ---
-
-    renderLoginForm(onSubmit) {
-        this._renderFormCard("Accedi al Sistema", "login-form", [
-            { label: "Email", id: "login-email", type: "email" },
-            { label: "Password", id: "login-password", type: "password" }
-        ], "Entra", "btn-primary", onSubmit);
-    }
-
-    renderRegisterForm(onSubmit) {
-        this._renderFormCard("Crea un Account", "register-form", [
-            { label: "Email Universitaria", id: "reg-email", type: "email", placeholder: "nome@studenti.unipr.it" },
-            { label: "Password", id: "reg-password", type: "password" }
-        ], "Registrati", "btn-success", onSubmit);
-    }
-
-    /**
-     * Helper generico per renderizzare le card dei form
-     */
-    _renderFormCard(titleText, formId, fields, btnText, btnClass, onSubmit) {
-        if (!this.mainContent) return;
-        this.mainContent.innerHTML = '';
-
-        const row = this._createElement('div', 'row justify-content-center py-5');
-        const col = this._createElement('div', 'col-md-5');
-        const card = this._createElement('div', 'card shadow border-0');
-        const cardBody = this._createElement('div', 'card-body p-5');
-        
-        const title = this._createElement('h3', 'text-center mb-4');
-        title.textContent = titleText;
-
-        const form = this._createElement('form', '', { id: formId });
-
-        fields.forEach(f => {
-            form.appendChild(this._createInputGroup(f.label, f.id, f.type, f.placeholder));
-        });
-
-        const submitBtn = this._createElement('button', `btn ${btnClass} w-100`, { type: 'submit' });
-        submitBtn.textContent = btnText;
-
-        form.appendChild(submitBtn);
-        cardBody.append(title, form);
-        card.appendChild(cardBody);
-        col.appendChild(card);
-        row.appendChild(col);
-        this.mainContent.appendChild(row);
-
-        form.onsubmit = (e) => {
-            e.preventDefault();
-            const values = fields.map(f => document.getElementById(f.id).value);
-            onSubmit(...values);
-        };
-    }
-
     updateNavbar(user) {
         const btnContainer = document.querySelector('.navbar .d-flex');
         if (!btnContainer) return;
@@ -357,57 +303,7 @@ class AppView extends BaseView{
         container.append(h2, form);
         this.mainContent.appendChild(container);
     }
-
-    renderAdminList(title, items, onBack, onAdd, onDelete, onSelectItem) {
-        this.mainContent.innerHTML = '';
-        const container = this._createElement('div', 'p-4');
-
-        // Header con tasto Indietro (se non siamo al livello Corsi) e Titolo
-        const header = this._createElement('div', 'd-flex align-items-center mb-4');
-        if (onBack) {
-            const btnBack = this._createElement('button', 'btn btn-outline-secondary btn-sm me-3');
-            btnBack.innerHTML = '<i class="bi bi-arrow-left"></i>';
-            btnBack.onclick = onBack;
-            header.appendChild(btnBack);
-        }
-        const h2 = this._createElement('h2', 'm-0');
-        h2.textContent = title;
-        header.appendChild(h2);
-
-        // Tasto Aggiungi
-        const btnAdd = this._createElement('button', 'btn btn-success btn-sm mb-3 d-inline-flex align-items-center');
-        btnAdd.innerHTML = `<i class="bi bi-plus-lg me-1"></i>Aggiungi`;
-        btnAdd.onclick = onAdd;
-        const btnWrapper = this._createElement('div', 'text-end'); // o 'text-end' se lo preferisci a destra
-        btnWrapper.appendChild(btnAdd);
-
-        // Lista degli elementi
-        const list = this._createElement('div', 'list-group shadow-sm');
-        items.forEach(item => {
-            const div = this._createElement('div', 'list-group-item d-flex justify-content-between align-items-center');
-            
-            // Nome cliccabile (se c'è un'azione di selezione, es. per scendere di livello)
-            const label = this._createElement('span', 'flex-grow-1 py-2');
-            label.textContent = item.nome || item.titolo;
-            if (onSelectItem) {
-                label.style.cursor = 'pointer';
-                label.classList.add('fw-bold', 'text-primary');
-                label.onclick = () => onSelectItem(item.id, item.nome || item.titolo);
-            }
-
-            // Tasto Elimina (Cestino rosso)
-            const btnDel = this._createElement('button', 'btn btn-outline-danger border-0');
-            btnDel.innerHTML = '<i class="bi bi-trash3"></i>';
-            btnDel.onclick = () => onDelete(item.id);
-
-            div.append(label, btnDel);
-            list.appendChild(div);
-        });
-
-        container.append(header, btnWrapper, list);
-        this.mainContent.appendChild(container);
-    }
-
+    
     renderGuestWelcome(onLoginClick) {
         this.mainContent.innerHTML = '';
         const container = this._createElement('div', 'text-center mt-5 p-5');

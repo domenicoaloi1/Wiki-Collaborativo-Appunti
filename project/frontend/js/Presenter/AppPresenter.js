@@ -88,7 +88,8 @@ class AppPresenter {
     // --- LOGICA AUTH ---
 
     showLogin() {
-        this.view.renderLoginForm(async (email, password) => {
+        const authView = new AuthView();
+        authView.renderLoginForm(async (email, password) => {
             try {
                 const user = await this.model.login(email, password);
                 this.view.updateNavbar(user);
@@ -100,13 +101,14 @@ class AppPresenter {
                 });
                 
             } catch (e) {
-                this.view.showError("Credenziali non valide.");
+                authView.showError("Credenziali non valide.");
             }
         });
     }
 
     showRegister() {
-        this.view.renderRegisterForm(async (email, password) => {
+        const authView = new AuthView();
+        authView.renderRegisterForm(async (email, password) => {
             try {
                 const response = await fetch(`${this.model.apiBase}/register`, {
                     method: 'POST',
@@ -117,7 +119,7 @@ class AppPresenter {
                 alert("Registrazione ok! Ora accedi.");
                 this.showLogin();
             } catch (e) {
-                this.view.showError(e.message);
+                authView.showError(e.message);
             }
         });
     }
