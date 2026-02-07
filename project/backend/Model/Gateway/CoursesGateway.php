@@ -51,9 +51,17 @@ class CoursesGateway extends AbstractGateway implements ICoursesGateway{
     }
 
     public function updateCourse(int $id, string $nome): void{
-        $this->pdo->prepare("UPDATE corsi SET nome = ? WHERE id = ?")
-        ->execute([$nome, $id]);
-        $this->pdo->commit();
+        $this->pdo->beginTransaction();
+        $sql = "";
+        $params = [$nome, $id];
+        try {
+            $sql = "UPDATE corsi SET nome = ? WHERE id = ?";
+            $this->pdo->prepare($sql)->execute([$nome, $id]);
+            $this->pdo->commit();
+        } catch (\Exception $e) {
+            $this->pdo->rollBack();
+            $this->handleGatewayError(__METHOD__, $e, $sql, $params);
+        }
     }
 
     public function deleteCourse(int $id): void{

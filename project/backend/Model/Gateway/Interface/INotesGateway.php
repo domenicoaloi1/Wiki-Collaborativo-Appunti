@@ -6,5 +6,6 @@ interface INotesGateway {
     public function deleteNotesOfArgument($argomento_id);
     public function getNotes(FilterStrategy $strategy);
     public function updateNoteContent(int $id, string $newContent);
+    public function updateNoteTitle(int $id, string $nome);
     public function deleteNotes(FilterStrategy $strategy);
 }

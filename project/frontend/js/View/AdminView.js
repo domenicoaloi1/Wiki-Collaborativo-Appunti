@@ -26,7 +26,7 @@ class AdminView extends BaseView {
                 ` : `
                     <div class="alert alert-info mb-4 shadow-sm">
                         <i class="bi bi-info-circle-fill me-2"></i> 
-                        In questa sezione puoi solo moderare o eliminare gli elementi esistenti.
+                        In questa sezione puoi solo rinominare o eliminare gli elementi esistenti.
                     </div>
                 `}
                 <div class="list-group shadow-sm" id="admin-data-list"></div>
@@ -48,28 +48,66 @@ class AdminView extends BaseView {
         const list = document.getElementById('admin-data-list');
         items.forEach(item => {
             const div = this._createElement('div', 'list-group-item d-flex justify-content-between align-items-center');
-            const span = this._createElement('span', 'flex-grow-1 py-2');
-            span.textContent = item.nome || item.titolo; 
+            const span = this._createElement('span', 'flex-grow-1 py-2 mx-2');
+            const titoloAttuale = item.nome || item.titolo;
+            span.textContent = titoloAttuale;
             
             if (callbacks.onSelect) {
                 span.style.cursor = 'pointer';
                 span.classList.add('fw-bold', 'text-primary');
-                span.onclick = () => callbacks.onSelect(item.id, item.nome || item.titolo);
+                span.onclick = () => callbacks.onSelect(item.id, titoloAttuale);
             }
+            
+            const btnEdit = this._createElement('button', 'btn btn-outline-warning btn-sm border-0');
+            btnEdit.innerHTML = '<i class="bi bi-pencil"></i>';
+            btnEdit.onclick = (e) => {
+                e.stopPropagation();
+                let isSaving = false;
+                const input = this._createElement('input', 'form-control form-control-sm flex-grow-1 mx-2');
+                input.value = titoloAttuale;
 
+                span.replaceWith(input);
+                input.focus();
+                input.select();
+
+                const closeEdit = () => {
+                    if (input.isConnected) {
+                        input.replaceWith(span);
+                    }
+                };
+
+                input.onkeydown = async (ev) => {
+                    if (ev.key === 'Enter') {
+                        const nuovoTitolo = input.value.trim();
+                        if (nuovoTitolo && nuovoTitolo !== titoloAttuale) {
+                            isSaving = true;
+                            await callbacks.onEdit(item.id, nuovoTitolo);
+                        }
+                        closeEdit();
+                    } else if (ev.key === 'Escape') {
+                        closeEdit();
+                    }
+                };
+
+                input.onblur = () => {
+                    if (!isSaving) {
+                        closeEdit();
+                    }
+                };
+            };
+            
             const btnDel = this._createElement('button', 'btn btn-outline-danger btn-sm border-0');
             btnDel.innerHTML = '<i class="bi bi-trash3"></i>';
 
-            btnDel.onclick = () => {
-                const nomeElemento = item.nome || item.titolo;
-                
-                this.showConfirm(`Sei sicuro di voler eliminare definitivamente <strong>"${nomeElemento}"</strong>?`, () => {
+            btnDel.onclick = (e) => {
+                e.stopPropagation();                
+                this.showConfirm(`Sei sicuro di voler eliminare definitivamente <strong>"${titoloAttuale}"</strong>?`, () => {
                     callbacks.onDelete(item.id);
                     this.showNotification("Richiesta di eliminazione inviata", "info");
                 });
             };
 
-            div.append(span, btnDel);
+            div.append(btnEdit, span, btnDel);
             list.appendChild(div);
         });
     }

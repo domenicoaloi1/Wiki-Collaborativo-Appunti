@@ -158,6 +158,20 @@ class AppModel extends EventEmitter{
         return await response.json();
         
     }
+
+    async renameCourse(id, nuovoNome) {
+        const response = await fetch(`${this.apiBase}/corso/modifica`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({nome: nuovoNome, id }),
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            this.emit('course:updated'); 
+        }
+        return await response.json();
+    }
     
     // ----- Argomenti
 
@@ -189,6 +203,20 @@ class AppModel extends EventEmitter{
         return await response.json();
     }
 
+    async renameArgomento(id, nuovoNome) {
+        const response = await fetch(`${this.apiBase}/argomento/modifica`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({nome: nuovoNome, id }),
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            this.emit('arguments:updated', corsoId);
+        }
+        return await response.json();
+    }
+    
     // ----- Appunti
 
     async createNote(argomentoId, titolo, contenuto) {
@@ -213,6 +241,20 @@ class AppModel extends EventEmitter{
             credentials: 'include'
         });
         
+        if (response.ok) {
+            this.emit('note:updated', argomentoId);
+        }
+        return await response.json();
+    }
+
+    async renameNote(id, nuovoNome) {
+        const response = await fetch(`${this.apiBase}/appunto/modifica`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({nome: nuovoNome, id }),
+            credentials: 'include'
+        });
+
         if (response.ok) {
             this.emit('note:updated', argomentoId);
         }

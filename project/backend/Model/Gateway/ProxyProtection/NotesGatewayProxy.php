@@ -48,6 +48,14 @@ class NotesGatewayProxy implements INotesGateway {
         }
         $this->unauthorized();
     }
+    
+    public function updateNoteTitle(int $id, string $nome){
+        if ($this->user && ($this->user['ruolo'] === 'amministratore')) {
+            return $this->realGateway->updateNoteTitle($id, $nome);
+        }
+        $this->unauthorized();
+    }
+
 
     private function unauthorized(): void {
         throw new Exception("Accesso negato: l'utente non dispone delle autorizzazioni necessarie per questa operazione.");

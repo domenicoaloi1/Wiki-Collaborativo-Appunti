@@ -6,7 +6,7 @@ class AdminPresenter {
             this.view = view;
 
             this.model.on('course:updated', () => this.init());
-            this.model.on('arguments:updated', (id) => this.showTopics(id, this.currentCorsoNome));
+            this.model.on('arguments:updated', (id) => this.showArgomenti(id, this.currentCorsoNome));
             this.model.on('note:updated', (id) => this.showNotes(id, this.currentArgNome, this.currentCorsoId, this.currentCorsoNome));
         } catch (error) {
             console.error(error);
@@ -20,7 +20,8 @@ class AdminPresenter {
         this.view.renderAdminDashboard("Gestione Corsi", courses, {
             onSave: (nome) => this.handleSaveCourse(nome),
             onDelete: (id) => this.handleDeleteCourse(id),
-            onSelect: (id, nome) => this.showTopics(id, nome),
+            onSelect: (id, nome) => this.showArgomenti(id, nome),
+            onEdit: (id, nome) => this.handleEditCourse(id, nome),
             onBack: null
         });
     }
@@ -50,10 +51,20 @@ class AdminPresenter {
             this.view.showError("Errore eliminazione: " + e.message);
         }
     }
+    
+    async handleEditCourse(id, nuovoNome) {
+        try {
+            await this.model.renameCourse(id, nuovoNome);
+            await this.init(); 
+            this.view.showNotification("Nome aggiornato correttamente", "success");
+        } catch (e) {
+            this.view.showNotification("Errore: " + e.message, "danger");
+        }
+    }
 
     // --- LOGICA ARGOMENTI ADMIN ---
 
-    async showTopics(corsoId, corsoNome) {
+    async showArgomenti(corsoId, corsoNome) {
         this.currentCorsoId = corsoId;
         this.currentCorsoNome = corsoNome;
         
@@ -62,8 +73,19 @@ class AdminPresenter {
             onSave: (nome) => this.model.createArgomento(corsoId, nome),
             onDelete: (id) => this.model.deleteArgomento(id, corsoId),
             onSelect: (id, nome) => this.showNotes(id, nome, corsoId, corsoNome),
+            onEdit: (id, nome) => this.handleEditArgument(id, nome),
             onBack: () => this.init()
         });
+    }
+    
+    async handleEditArgument(id, nuovoNome) {
+        try {
+            await this.model.renameArgomento(id, nuovoNome);
+            await this.init(); 
+            this.view.showNotification("Nome aggiornato correttamente", "success");
+        } catch (e) {
+            this.view.showNotification("Errore: " + e.message, "danger");
+        }
     }
 
     // --- LOGICA NOTE ADMIN ---
@@ -79,9 +101,19 @@ class AdminPresenter {
             onSave: null,
             onDelete: (id) => this.model.deleteNote(id, argId),
             onSelect: null,
-            onBack: () => this.showTopics(corsoId, corsoNome)
+            onEdit: (id, nome) => this.handleEditNoteTitle(id, nome),
+            onBack: () => this.showArgomenti(corsoId, corsoNome)
         });
     }
-
+    
+    async handleEditNoteTitle(id, nuovoNome) {
+        try {
+            await this.model.renameNote(id, nuovoNome);
+            await this.showArgomenti(); 
+            this.view.showNotification("Nome aggiornato correttamente", "success");
+        } catch (e) {
+            this.view.showNotification("Errore: " + e.message, "danger");
+        }
+    }
 
 }

@@ -399,4 +399,16 @@ $router->add('POST', '/argomento/modifica', function() use ($argomentiGateway) {
     }
 });
 
+// RF10
+$router->add('POST', '/appunto/modifica', function() use ($notesGateway) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    try {
+        $notesGateway->updateNoteTitle((int)$data['id'], $data['nome']);
+        echo json_encode(["status" => "success"]);
+    } catch (Exception $e) {
+        http_response_code(403);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
+});
+
 $router->dispatch();
