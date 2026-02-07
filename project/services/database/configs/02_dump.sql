@@ -5,10 +5,10 @@
 -- Utenti
 
 INSERT INTO utenti (id, email, password, ruolo) VALUES 
-(1, 'admin@unipr.it', SHA2('admin', 256), 'amministratore'),
-(2, 'studente_test1@studenti.unipr.it', SHA2('StudenteProva1', 256), 'studente'),
-(3, 'studente_test2@studenti.unipr.it', SHA2('StudenteProva2', 256), 'studente'),
-(4, 'studente_test3@studenti.unipr.it', SHA2('StudenteProva3', 256), 'studente')
+(1, 'admin@unipr.it', SHA2('Vector!', 256), 'amministratore'),
+(2, 'studente_test1@studenti.unipr.it', SHA2('Prova1', 256), 'studente'),
+(3, 'studente_test2@studenti.unipr.it', SHA2('Prova2', 256), 'studente'),
+(4, 'studente_test3@studenti.unipr.it', SHA2('Prova3', 256), 'studente')
 ON DUPLICATE KEY UPDATE password = VALUES(password);
 
 -- Corsi

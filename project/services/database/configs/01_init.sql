@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS versioni (
     id INT AUTO_INCREMENT PRIMARY KEY,
     appunto_id INT NOT NULL,
     utente_id INT,
-    testo_percorso VARCHAR(255) NOT NULL,
+    file_path VARCHAR(255) NOT NULL,
     data_modifica TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (appunto_id) REFERENCES appunti(id) ON DELETE CASCADE,
     FOREIGN KEY (utente_id) REFERENCES utenti(id) ON DELETE SET NULL
