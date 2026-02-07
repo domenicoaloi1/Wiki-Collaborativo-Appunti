@@ -112,7 +112,7 @@ class AppPresenter {
                 this.handleViewNote(noteId);
             });
 
-            if (this.model.currentUser) {
+            if (this.model.currentUser?.ruolo === "studente") {
                 const btnCreate = document.createElement('button');
                 btnCreate.className = 'btn btn-primary mt-3';
                 btnCreate.textContent = '+ Crea Nuovo Appunto';
@@ -142,7 +142,7 @@ class AppPresenter {
     async handleViewNote(noteId) {
         try {
             const note = await this.model.fetchNoteDetail(noteId);
-            const isLogged = this.model.currentUser !== null;
+            const isLogged = this.model.currentUser?.ruolo === "studente";
 
             const onSave = isLogged ? (testo) => this.handleSaveVersion(noteId, testo) : null;
             const onShowHistory = isLogged ? () => this.handleShowHistory(noteId) : null;            
