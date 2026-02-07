@@ -1,11 +1,13 @@
 <?php
 // backend/index.php
-session_start();
+
 // REST + CORS
 header("Access-Control-Allow-Origin: http://localhost:8080");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header('Content-Type: application/json; charset=utf-8');
+header('Access-Control-Allow-Credentials: true');
+session_start();
 
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     http_response_code(200);
@@ -15,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 // LOAD FILES
 require_once 'Router.php';
 spl_autoload_register(function ($class_name) {
-    $dirs = ['Model/Core/', 'Model/Gateway/', 'Model/Strategy/', 'Model/Memento/', ''];
+    $dirs = ['Model/Core/', 'Model/Gateway/', 'Model/Gateway/ProxyProtection/', 'Model/Gateway/Interface/', 'Model/Strategy/', 'Model/Memento/', ''];
     foreach ($dirs as $dir) {
         $file = __DIR__ . '/' . $dir . $class_name . '.php';
         // error_log("Cerco la classe $class_name in: $file");
@@ -37,13 +39,24 @@ $factory = new DatabaseFactory($dbConfig);
 $pdo = (new DatabaseFactory($dbConfig))->createConnection();
 
 // Inizializzazione
-$coursesGateway = new CoursesGateway($pdo);
-$argomentiGateway = new ArgomentiGateway($pdo);
-$notesGateway = new NotesGateway($pdo);
-$versionsGateway = new VersionsGateway($pdo);
+$realCoursesGateway = new CoursesGateway($pdo);
+$realArgomentiGateway = new ArgomentiGateway($pdo);
+$realNotesGateway = new NotesGateway($pdo);
+$realVersionsGateway = new VersionsGateway($pdo);
 $userGateway = new UserGateway($pdo);
 $router = new Router();
-
+$sessionUser = $_SESSION['user'] ?? null;
+$notesGateway = new NotesGatewayProxy($realNotesGateway, $sessionUser);
+$versionsGateway = new VersionsGatewayProxy($realVersionsGateway, $sessionUser);
+$coursesGateway = new CoursesGatewayProxy($realCoursesGateway, $sessionUser);
+$argomentiGateway = new ArgomentiGatewayProxy($realArgomentiGateway, $sessionUser);
+$gateways = [
+    'course' => $coursesGateway,
+    'topic' => $argomentiGateway,
+    'note' => $notesGateway,
+    'version' => $versionsGateway
+];
+$cascadeService = new CascadeService($pdo, $gateways);
 // Routing
 
 // RF3
@@ -109,6 +122,11 @@ $router->add('GET', '/cerca', function() use ($notesGateway) {
 // RF2
 $router->add('POST', '/login', function() use ($userGateway) {
     // Leggiamo i dati JSON dal corpo della richiesta
+
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
     $data = json_decode(file_get_contents('php://input'), true);
     $email = $data['email'] ?? '';
     $password = $data['password'] ?? '';
@@ -116,8 +134,8 @@ $router->add('POST', '/login', function() use ($userGateway) {
     $user = $userGateway->getUser(new EmailFilter($email));
 
     if ($user && hash('sha256', $password) === $user['password']) {
-        // Login successo! Ritorna i dati dell'utente (senza la password)
         unset($user['password']);
+        $_SESSION['user'] = $user;
         echo json_encode([
             "status" => "success",
             "user" => $user
@@ -130,9 +148,12 @@ $router->add('POST', '/login', function() use ($userGateway) {
 
 // RF2
 $router->add('POST', '/logout', function() {
-    session_start();
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    $_SESSION = array();
     session_destroy();
-    echo json_encode(["status" => "success"]);
+    echo json_encode(["status" => "success", "message" => "Sessione chiusa"]);
 });
 
 // RF1
@@ -239,7 +260,6 @@ $router->add('GET', '/appunto/storia', function() use ($versionsGateway, $userGa
         } catch (Exception $e) {
             $v['autore'] = 'Errore recupero';
         }
-        // Rimuoviamo l'utente_id dal JSON finale se non serve al frontend
         unset($v['utente_id']);
     }
 
@@ -290,6 +310,103 @@ $router->add('POST', '/appunto/versione/ripristina', function() use ($versionsGa
         ]);
     } catch (Exception $e) {
         http_response_code(500);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
+});
+
+// RF10
+$router->add('POST', '/corso/crea', function() use ($coursesGateway) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    // error_log(print_r($_SESSION, true));
+    try {
+        $id = $coursesGateway->createCourse($data['nome']);
+        echo json_encode(["status" => "success", "id" => $id]);
+    } catch (Exception $e) {
+        http_response_code(403);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
+});
+
+// RF10
+$router->add('POST', '/argomento/crea', function() use ($argomentiGateway) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    try {
+        $id = $argomentiGateway->createArgomento((int)$data['corso_id'], $data['nome']);
+        echo json_encode(["status" => "success", "id" => $id]);
+    } catch (Exception $e) {
+        http_response_code(403);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
+});
+
+// RF10
+$router->add('POST', '/corso/elimina', function() use ($cascadeService) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    try {
+        $cascadeService->deleteFullCourse((int)$data['id']);
+        echo json_encode(["status" => "success"]);
+    } catch (Exception $e) {
+        http_response_code(403);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
+});
+
+// RF10
+$router->add('POST', '/argomento/elimina', function() use ($cascadeService) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    try {
+        $cascadeService->deleteArgumentWithContent((int)$data['id']);
+        echo json_encode(["status" => "success"]);
+    } catch (Exception $e) {
+        http_response_code(403);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
+});
+
+// RF10
+$router->add('POST', '/appunto/elimina', function() use ($cascadeService) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    try {
+        $cascadeService->deleteNoteWithVersions((int)$data['id']);
+        echo json_encode(["status" => "success"]);
+    } catch (Exception $e) {
+        http_response_code(403);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
+});
+
+// RF10
+$router->add('POST', '/corso/modifica', function() use ($coursesGateway) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    try {
+        $coursesGateway->updateCourse((int)$data['id'], $data['nome']);
+        echo json_encode(["status" => "success"]);
+    } catch (Exception $e) {
+        http_response_code(403);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
+});
+
+// RF10
+$router->add('POST', '/argomento/modifica', function() use ($argomentiGateway) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    try {
+        $argomentiGateway->updateArgomento((int)$data['id'], $data['nome']);
+        echo json_encode(["status" => "success"]);
+    } catch (Exception $e) {
+        http_response_code(403);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
+});
+
+// RF10
+$router->add('POST', '/appunto/modifica', function() use ($notesGateway) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    try {
+        $notesGateway->updateNoteTitle((int)$data['id'], $data['nome']);
+        echo json_encode(["status" => "success"]);
+    } catch (Exception $e) {
+        http_response_code(403);
         echo json_encode(["error" => $e->getMessage()]);
     }
 });

@@ -1,40 +1,63 @@
 // frontend/js/View/AppView.js
 
-class AppView {
+class AppView extends BaseView{
     constructor() {
+        super();
         this.sidebarContainer = document.getElementById('courses-list');
-        this.mainContent = document.getElementById('main-content');
-    }
-
-    // --- HELPERS PRIVATI ---
-
-    /**
-     * Crea un elemento DOM in modo granulare
-     */
-    _createElement(tag, className = "", attributes = {}) {
-        const el = document.createElement(tag);
-        if (className) el.className = className;
-        Object.entries(attributes).forEach(([key, value]) => el.setAttribute(key, value));
-        return el;
-    }
-
-    /**
-     * Helper per creare gruppi di input Bootstrap
-     */
-    _createInputGroup(labelTitle, id, type, placeholder = "") {
-        const div = this._createElement('div', 'mb-3');
-        const label = this._createElement('label', 'form-label');
-        label.textContent = labelTitle;
-        const input = this._createElement('input', 'form-control', { id, type, required: true, placeholder });
-        div.append(label, input);
-        return div;
     }
 
     // --- RENDERING SIDEBAR ---
 
+
+    renderHomeButton(onHomeClick) {
+        const container = document.getElementById('home-button-container');
+        if (!container) return;
+
+        container.innerHTML = '';
+        const btnHome = this._createElement('button', 'btn btn-outline-primary w-100 d-flex align-items-center justify-content-center');
+        
+        btnHome.innerHTML = '<i class="bi bi-house-door-fill me-2"></i> Torna alla pagina iniziale';
+        
+        btnHome.onclick = (e) => {
+            e.preventDefault();
+            onHomeClick();
+        };
+
+        container.appendChild(btnHome);
+    }
+    
+    bindNavbarActions(handlers) {
+        const { onLogin, onRegister, onLogout } = handlers;
+
+        const btnLogin = document.getElementById('btn-login');
+        if (btnLogin) btnLogin.onclick = (e) => {
+            e.preventDefault();
+            onLogin();
+        };
+
+        const btnRegister = document.getElementById('btn-register');
+        if (btnRegister) btnRegister.onclick = (e) => {
+            e.preventDefault();
+            onRegister();
+        };
+
+        const btnLogout = document.getElementById('btn-logout');
+        if (btnLogout) btnLogout.onclick = (e) => {
+            e.preventDefault();
+            onLogout();
+        };
+    }
+
+    bindSearch(handler) {
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => handler(e.target.value));
+        }
+    }
+
     renderSidebar(courses, onCourseClick) {
         if (!this.sidebarContainer) return;
-        this.sidebarContainer.innerHTML = ''; 
+        this.sidebarContainer.innerHTML = '';
 
         courses.forEach(course => {
             const container = this._createElement('div', 'course-group mb-2');
@@ -80,151 +103,38 @@ class AppView {
     }
 
     // --- RENDERING MAIN CONTENT ---
-    renderWelcomeUser(contextTitle) {
-        if (!this.mainContent) return;
+    renderWelcomeUser(user, onAdminClick) {
         this.mainContent.innerHTML = '';
-
-        const h2 = this._createElement('h2', 'mb-4 text-primary');
-        h2.textContent = contextTitle;
-
-        const alert = this._createElement('div', 'alert alert-info');
-        alert.textContent = "Naviga tra i corsi o cerca un appunto.";
-        this.mainContent.append(h2, alert);
-        return;
-    }
-
-    renderList(notes, contextTitle, onNoteClick) {
-        if (!this.mainContent) return;
-        this.mainContent.innerHTML = '';
-
-        const h2 = this._createElement('h2', 'mb-4 text-primary');
-        h2.textContent = contextTitle;
-
-        if (notes.length === 0) {
-            const alert = this._createElement('div', 'alert alert-info');
-            alert.textContent = "Nessun appunto trovato.";
-            this.mainContent.append(h2, alert);
-            return;
-        }
-
-        const ul = this._createElement('ul', 'list-group shadow-sm');
-        notes.forEach(note => {
-            const li = this._createElement('li', 'list-group-item d-flex justify-content-between align-items-center p-3');
-            
-            const infoDiv = this._createElement('div');
-            const h5 = this._createElement('h5', 'mb-1');
-            h5.textContent = note.titolo;
-            const small = this._createElement('small', 'text-muted');
-            small.textContent = `Creato il: ${note.data_creazione}`;
-            infoDiv.append(h5, small);
-
-            const btn = this._createElement('button', 'btn btn-primary btn-sm');
-            btn.textContent = "Leggi";
-            btn.onclick = () => onNoteClick(note.id);
-
-            li.append(infoDiv, btn);
-            ul.appendChild(li);
-        });
-
-        this.mainContent.append(h2, ul);
-    }
-
-    renderNoteDetail(note, canEdit, onSaveVersion, onShowHistory) {
-        this.mainContent.innerHTML = '';
-        const container = this._createElement('div', 'note-container p-4');
-
-        const title = this._createElement('h2', 'mb-3');
-        title.textContent = note.titolo;
-
-        // Area di testo per il contenuto
-        const textarea = this._createElement('textarea', 'form-control mb-3', { 
-            rows: 15,
-            placeholder: 'Contenuto dell\'appunto...'
-        });
-        textarea.value = note.contenuto;
-
-        // LOGICA DI SOLA LETTURA
-        if (!canEdit) {
-            textarea.setAttribute('readonly', 'true');
-            textarea.classList.add('bg-light'); // Grigio chiaro per feedback visivo
-        }
-
-        const btnGroup = this._createElement('div', 'd-flex gap-2 mb-4');
-
-        // Mostriamo il tasto salva solo se l'utente può editare
-        if (canEdit && onSaveVersion) {
-            const btnSave = this._createElement('button', 'btn btn-success');
-            btnSave.textContent = 'Salva Nuova Versione';
-            btnSave.onclick = () => onSaveVersion(textarea.value);
-            btnGroup.appendChild(btnSave);
-        }
-
-        const btnHistory = this._createElement('button', 'btn btn-outline-primary');
-        btnHistory.textContent = 'Vedi Cronologia';
-        btnHistory.onclick = () => onShowHistory();
-        btnGroup.appendChild(btnHistory);
-
-        container.append(title, textarea, btnGroup);
+        const container = this._createElement('div', 'text-center mt-5 p-4');
         
-        // Contenitore per la storia
-        const historyContainer = this._createElement('div', 'history-section mt-4', { id: 'history-list' });
-        container.appendChild(historyContainer);
+        // Titolo di benvenuto
+        const h2 = this._createElement('h2', 'mb-4');
+        h2.textContent = "Bentornato!";
+        container.appendChild(h2);
+
+        // Creazione del box messaggi (alert)
+        const messageBox = this._createElement('div', 'alert mx-auto w-50 d-flex align-items-center justify-content-center');
+        
+        if (user.ruolo === 'amministratore') {
+            // Stile Admin: Box Giallo
+            messageBox.classList.add('alert-warning');
+            messageBox.innerHTML = '<i class="bi bi-shield-lock-fill me-2"></i>Console di amministrazione.';
+            
+            // Pulsante Gestione (solo per Admin)
+            const btnAdmin = this._createElement('button', 'btn btn-primary mt-3 d-flex align-items-center mx-auto');
+            btnAdmin.innerHTML = '<i class="bi bi-gear-fill me-2"></i>Gestione catalogo';
+            btnAdmin.onclick = onAdminClick;
+            
+            container.append(messageBox, btnAdmin);
+        } else {
+            // Stile Studente: Box Blu
+            messageBox.classList.add('alert-info');
+            messageBox.innerHTML = '<i class="bi bi-info-circle-fill me-2"></i>Naviga tra i corsi o cerca un appunto.';
+            
+            container.appendChild(messageBox);
+        }
 
         this.mainContent.appendChild(container);
-    }
-
-    // --- FORMS (LOGIN & REGISTER) ---
-
-    renderLoginForm(onSubmit) {
-        this._renderFormCard("Accedi al Sistema", "login-form", [
-            { label: "Email", id: "login-email", type: "email" },
-            { label: "Password", id: "login-password", type: "password" }
-        ], "Entra", "btn-primary", onSubmit);
-    }
-
-    renderRegisterForm(onSubmit) {
-        this._renderFormCard("Crea un Account", "register-form", [
-            { label: "Email Universitaria", id: "reg-email", type: "email", placeholder: "nome@studenti.unipr.it" },
-            { label: "Password", id: "reg-password", type: "password" }
-        ], "Registrati", "btn-success", onSubmit);
-    }
-
-    /**
-     * Helper generico per renderizzare le card dei form
-     */
-    _renderFormCard(titleText, formId, fields, btnText, btnClass, onSubmit) {
-        if (!this.mainContent) return;
-        this.mainContent.innerHTML = '';
-
-        const row = this._createElement('div', 'row justify-content-center py-5');
-        const col = this._createElement('div', 'col-md-5');
-        const card = this._createElement('div', 'card shadow border-0');
-        const cardBody = this._createElement('div', 'card-body p-5');
-        
-        const title = this._createElement('h3', 'text-center mb-4');
-        title.textContent = titleText;
-
-        const form = this._createElement('form', '', { id: formId });
-
-        fields.forEach(f => {
-            form.appendChild(this._createInputGroup(f.label, f.id, f.type, f.placeholder));
-        });
-
-        const submitBtn = this._createElement('button', `btn ${btnClass} w-100`, { type: 'submit' });
-        submitBtn.textContent = btnText;
-
-        form.appendChild(submitBtn);
-        cardBody.append(title, form);
-        card.appendChild(cardBody);
-        col.appendChild(card);
-        row.appendChild(col);
-        this.mainContent.appendChild(row);
-
-        form.onsubmit = (e) => {
-            e.preventDefault();
-            const values = fields.map(f => document.getElementById(f.id).value);
-            onSubmit(...values);
-        };
     }
 
     updateNavbar(user) {
@@ -251,107 +161,26 @@ class AppView {
         }
     }
 
-    showError(msg) {
-        alert("Errore: " + msg);
-    }
 
-    bindSearch(handler) {
-        const searchInput = document.getElementById('search-input');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => handler(e.target.value));
-        }
-    }
 
-    renderHistory(versions, onRestore, onRead) {
-        const container = document.getElementById('history-list');
-        if (!container) return;
+    renderGuestWelcome(onLoginClick) {
+        this.mainContent.innerHTML = '';
+        const container = this._createElement('div', 'text-center mt-5 p-5');
         
-        container.innerHTML = ''; // Pulizia contenuto precedente
-
-        const h4 = this._createElement('h4', 'mb-3 border-top pt-3');
-        h4.textContent = 'Cronologia Versioni';
-        container.appendChild(h4);
-
-        // CONTROLLO CRONOLOGIA VUOTA
-        if (!versions || versions.length === 0) {
-            const emptyMsg = this._createElement('div', 'alert alert-warning');
-            emptyMsg.textContent = 'Nessuna versione precedente disponibile.';
-            container.appendChild(emptyMsg);
-            return;
-        }
-
-        // Se ci sono versioni, procedi con la creazione della lista
-        const list = this._createElement('ul', 'list-group');
-        versions.forEach(v => {
-            const li = this._createElement('li', 'list-group-item d-flex justify-content-between align-items-center');
-            
-            const info = this._createElement('div');
-            info.innerHTML = `<strong>${v.data_modifica}</strong><br><small class="text-muted">Autore: ${v.autore}</small>`;
-            
-            const actions = this._createElement('div', 'btn-group');
-            
-            const btnRead = this._createElement('button', 'btn btn-sm btn-outline-info');
-            btnRead.textContent = 'Leggi';
-            btnRead.onclick = () => onRead(v.id, v.data_modifica);
-
-            const btnRestore = this._createElement('button', 'btn btn-sm btn-warning');
-            btnRestore.textContent = 'Ripristina';
-            btnRestore.onclick = () => onRestore(v.id);
-
-            actions.append(btnRead, btnRestore);
-            li.append(info, actions);
-            list.appendChild(li);
-        });
-
-        container.appendChild(list);
-    }
-
-    showVersionPreview(testo, data) {
-        // Rimuoviamo eventuali anteprime precedenti
-        const oldPreview = document.getElementById('version-preview-box');
-        if (oldPreview) oldPreview.remove();
-
-        const previewBox = this._createElement('div', 'alert alert-info mt-3', { id: 'version-preview-box' });
-        previewBox.innerHTML = `
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h5>Visualizzazione versione del: ${data}</h5>
-                <button type="button" class="btn-close" onclick="this.parentElement.parentElement.remove()"></button>
-            </div>
-            <hr>
-            <pre style="white-space: pre-wrap;">${testo}</pre>
-            <div class="text-end mt-2">
-                <small><i>Visualizzazione in sola lettura.</i></small>
+        container.innerHTML = `
+            <h1 class="display-4 fw-bold text-primary mb-4">Benvenuto nel Catalogo Appunti</h1>
+            <p class="lead mb-4">Naviga tra i corsi nella sidebar per consultare i materiali disponibili.</p>
+            <div class="alert alert-info d-inline-block shadow-sm">
+                <i class="bi bi-info-circle me-2"></i>
+                Vuoi caricare i tuoi appunti o gestire il catalogo?
+                <button id="btn-welcome-login" class="btn btn-link fw-bold p-0 ms-1">Accedi ora</button>
             </div>
         `;
         
-        document.getElementById('history-list').prepend(previewBox);
-        previewBox.scrollIntoView({ behavior: 'smooth' });
-    }
-
-    renderCreateNoteForm(argomentoId, onSubmit) {
-        this.mainContent.innerHTML = '';
-        const container = this._createElement('div', 'p-4');
-        const h2 = this._createElement('h2', 'mb-4');
-        h2.textContent = 'Crea Nuovo Appunto';
-
-        const form = this._createElement('form');
-        const titleGroup = this._createInputGroup('Titolo Appunto', 'note-title', 'text', 'Inserisci titolo...');
-        const contentGroup = this._createElement('div', 'mb-3');
-        const label = this._createElement('label', 'form-label');
-        label.textContent = 'Contenuto (Markdown)';
-        const text = this._createElement('textarea', 'form-control', { id: 'note-content', rows: 10 });
-        contentGroup.append(label, text);
-
-        const btn = this._createElement('button', 'btn btn-primary', { type: 'submit' });
-        btn.textContent = 'Pubblica Appunto';
-
-        form.append(titleGroup, contentGroup, btn);
-        form.onsubmit = (e) => {
-            e.preventDefault();
-            onSubmit(document.getElementById('note-title').value, text.value);
-        };
-
-        container.append(h2, form);
         this.mainContent.appendChild(container);
+        
+        // Se l'utente preme "Accedi ora", apriamo il login
+        document.getElementById('btn-welcome-login').onclick = onLoginClick;
     }
+
 }

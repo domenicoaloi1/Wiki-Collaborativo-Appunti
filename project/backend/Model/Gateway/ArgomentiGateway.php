@@ -1,7 +1,7 @@
 <?php
 // backend/Model/Gateway/ArgomentiGateway.php
 
-class ArgomentiGateway extends AbstractGateway {
+class ArgomentiGateway extends AbstractGateway implements IArgomentiGateway{
     
     public function getArgomenti(FilterStrategy $strategy): array {
         $qo = new QueryObject();
@@ -37,4 +37,62 @@ class ArgomentiGateway extends AbstractGateway {
         
         return (int)$res;
     }
+
+    public function createArgomento(int $corsoId, string $nome): int {
+        $sql = "";
+        $params = [$corsoId,$nome];
+        $this->pdo->beginTransaction();
+        try {
+            
+            $sql = "INSERT INTO argomenti (corso_id, nome) VALUES (?, ?)";
+            $this->pdo->prepare($sql)->execute([$corsoId, $nome]);
+            $newId = (int)$this->pdo->lastInsertId();
+            $this->pdo->commit();
+            return $newId;
+        } catch (\Exception $e) {
+            $this->pdo->rollBack();
+            $this->handleGatewayError(__METHOD__, $e, $sql, $params);
+        }
+    }
+    
+    public function deleteArguments(FilterStrategy $strategy) {
+        $params = [];
+        $fullSql = "";
+        try {
+            $qo = new QueryObject();
+            $strategy->buildCriteria($qo);
+
+            
+            $baseSql = "DELETE FROM argomenti "; 
+            $fullSql = $baseSql;
+            $where = $this->buildWhereClause($qo, $params);
+
+            if (empty($where)) {
+                throw new Exception("Attenzione: clausola WHERE vuota. Rischio cancellazione totale!");
+            }
+            $fullSql = $baseSql . $where;
+            $stmt = $this->pdo->prepare($baseSql . $where);
+            $stmt->execute($params);
+
+            return true;
+
+        } catch (\Exception $e) {
+            $this->handleGatewayError(__METHOD__, $e, $fullSql, $params);
+        }
+    }
+
+    public function updateArgomento(int $id, string $nome): void{
+        $this->pdo->beginTransaction();
+        $sql = "";
+        $params = [$nome, $id];
+        try {
+            $sql = "UPDATE argomenti SET nome = ? WHERE id = ?";
+            $this->pdo->prepare($sql)->execute([$nome, $id]);
+            $this->pdo->commit();
+        } catch (\Exception $e) {
+            $this->pdo->rollBack();
+            $this->handleGatewayError(__METHOD__, $e, $sql, $params);
+        }
+    }
+
 }

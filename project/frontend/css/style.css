@@ -12,3 +12,39 @@ body {
     letter-spacing: 1px;
     margin-left: 10px;
 }
+
+.toast {
+    pointer-events: auto; /* Riattiva i click sul toast stesso */
+    display: block !important; /* Forza la visibilità se Bootstrap tentenna */
+    opacity: 0; 
+    backdrop-filter: blur(10px);
+    background-color: rgba(var(--bs-dark-rgb), 0.85) !important;
+}
+
+.toast.show {
+    opacity: 1;
+}
+
+#toastPlacement {
+    pointer-events: none; /* Permette di cliccare gli elementi sotto se il toast non c'è */
+}
+
+.bg-success { background-color: rgba(25, 135, 84, 0.9) !important; }
+.bg-danger { background-color: rgba(220, 53, 69, 0.9) !important; }
+
+.bg-info { background-color: rgba(207, 244, 252, 0.9) !important; }
+.bg-info .toast-body, .bg-info .btn-close {
+    color: #055160 !important; /* Un blu molto scuro per contrasto */
+}
+.bg-info .btn-close {
+    filter: none; /* Rimuove l'effetto bianco se presente */
+}
+
+#dynamicConfirmModal .modal-content {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+#dynamicConfirmModal .modal-header {
+    background: linear-gradient(45deg, #dc3545, #ff4d5a) !important;
+}
