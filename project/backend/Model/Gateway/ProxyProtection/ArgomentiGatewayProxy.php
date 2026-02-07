@@ -39,14 +39,6 @@ class ArgomentiGatewayProxy implements IArgomentiGateway {
         $this->unauthorized();
     }
 
-    public function deleteArgomento(int $id): void {
-        if ($this->user && $this->user['ruolo'] === 'amministratore') {
-            $this->realGateway->deleteArgomento($id);
-            return;
-        }
-        $this->unauthorized();
-    }
-
     private function unauthorized(): void {
         throw new Exception("Accesso negato: operazione riservata agli amministratori.");
     }

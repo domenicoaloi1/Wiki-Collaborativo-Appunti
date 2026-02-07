@@ -136,17 +136,4 @@ class NotesGateway extends AbstractGateway implements INotesGateway{
         }
     }
 
-    // funzioni non utilizzate
-
-    public function deleteNote($id): void  {
-        $sql = "DELETE FROM appunti WHERE id = ?";
-        $this->pdo->prepare($sql)->execute([$id]);
-    }
-
-    public function deleteNotesOfArgument($argomento_id): void  {
-        $sql = "DELETE FROM appunti WHERE argomento_id = ?";
-        $this->pdo->prepare($sql)->execute([$argomento_id]);
-    }
-
-
 }

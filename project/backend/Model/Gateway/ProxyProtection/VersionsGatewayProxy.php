@@ -19,7 +19,7 @@ class VersionsGatewayProxy implements IVersionsGateway {
     }
 
     public function saveVersion(NoteMemento $memento, int $corsoId): void {
-        if ($this->user && ($this->user['ruolo'] === 'studente' || $this->user['ruolo'] === 'amministratore')) {
+        if ($this->user && ($this->user['ruolo'] === 'studente')) {
             $this->realGateway->saveVersion($memento, $corsoId);
             return;
         }

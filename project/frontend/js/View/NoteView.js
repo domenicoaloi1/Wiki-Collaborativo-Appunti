@@ -4,7 +4,7 @@ class NoteView extends BaseView {
         super();
     }
 
-    renderList(notes, contextTitle, onNoteClick) {
+    renderList(notes, contextTitle, onNoteClick, onCreateClick = null) {
         if (!this.mainContent) return;
         this.mainContent.innerHTML = '';
 
@@ -15,6 +15,12 @@ class NoteView extends BaseView {
             const alert = this._createElement('div', 'alert alert-info');
             alert.textContent = "Nessun appunto trovato.";
             this.mainContent.append(h2, alert);
+            if (onCreateClick) {
+                const btnCreate = this._createElement('button', 'btn btn-primary mt-3');
+                btnCreate.textContent = '+ Crea Nuovo Appunto';
+                btnCreate.onclick = onCreateClick;
+                this.mainContent.appendChild(btnCreate);
+            }
             return;
         }
 
@@ -38,6 +44,13 @@ class NoteView extends BaseView {
         });
 
         this.mainContent.append(h2, ul);
+        
+        if (onCreateClick) {
+            const btnCreate = this._createElement('button', 'btn btn-primary mt-3');
+            btnCreate.textContent = '+ Crea Nuovo Appunto';
+            btnCreate.onclick = onCreateClick;
+            this.mainContent.appendChild(btnCreate);
+        }
     }
 
     renderNoteDetail(note, canEdit, onSaveVersion, onShowHistory) {

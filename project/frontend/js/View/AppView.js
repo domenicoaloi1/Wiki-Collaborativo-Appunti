@@ -25,6 +25,28 @@ class AppView extends BaseView{
 
         container.appendChild(btnHome);
     }
+    
+    bindNavbarActions(handlers) {
+        const { onLogin, onRegister, onLogout } = handlers;
+
+        const btnLogin = document.getElementById('btn-login');
+        if (btnLogin) btnLogin.onclick = (e) => {
+            e.preventDefault();
+            onLogin();
+        };
+
+        const btnRegister = document.getElementById('btn-register');
+        if (btnRegister) btnRegister.onclick = (e) => {
+            e.preventDefault();
+            onRegister();
+        };
+
+        const btnLogout = document.getElementById('btn-logout');
+        if (btnLogout) btnLogout.onclick = (e) => {
+            e.preventDefault();
+            onLogout();
+        };
+    }
 
     bindSearch(handler) {
         const searchInput = document.getElementById('search-input');

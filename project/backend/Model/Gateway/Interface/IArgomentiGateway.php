@@ -6,5 +6,4 @@ interface IArgomentiGateway {
     public function getCorsoIdByArgomento(FilterStrategy $strategy): int;
     public function createArgomento(int $corsoId, string $nome);
     public function updateArgomento(int $id, string $nome): void;
-    public function deleteArgomento(int $id): void;
 }

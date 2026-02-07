@@ -29,14 +29,11 @@ class AppPresenter {
     // --- LOGICA AUTH/NAVBAR ---
     
     bindNavbarEvents() {
-        const btnLogin = document.getElementById('btn-login');
-        if (btnLogin) btnLogin.onclick = () => this.showLogin();
-
-        const btnRegister = document.getElementById('btn-register');
-        if (btnRegister) btnRegister.onclick = () => this.showRegister();
-
-        const btnLogout = document.getElementById('btn-logout');
-        if (btnLogout) btnLogout.onclick = () => this.handleLogout();
+        this.view.bindNavbarActions({
+            onLogin: () => this.showLogin(),
+            onRegister: () => this.showRegister(),
+            onLogout: () => this.handleLogout()
+        });
     }
 
     showLogin() {
@@ -61,16 +58,14 @@ class AppPresenter {
 
     showRegister() {
         const authView = new AuthView();
+        
         authView.renderRegisterForm(async (email, password) => {
             try {
-                const response = await fetch(`${this.model.apiBase}/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-                if (!response.ok) throw new Error("Registrazione fallita");
+                await this.model.register(email, password);
+                
                 authView.showSuccess("Registrazione ok! Ora accedi.");
-                this.showLogin();
+                this.showLogin(); 
+                
             } catch (e) {
                 authView.showError(e.message);
             }
@@ -79,14 +74,10 @@ class AppPresenter {
 
     async handleLogout() {
         try {
-            await fetch(`${this.model.apiBase}/logout`, {
-                method: 'POST',
-                credentials: 'include'
-            });
-            this.model.currentUser = null;
-            localStorage.removeItem('user');
-            location.reload();
+            await this.model.logout();
             this.view.showNotification("Logout avvenuto");
+            location.reload(); 
+            
         } catch (e) {
             console.error("Errore durante il logout:", e);
             location.reload();
@@ -109,20 +100,21 @@ class AppPresenter {
     async handleArgomentoSelection(argId, argNome) {
         try {
             const appunti = await this.model.fetchAppunti(argId);
-            
             const noteView = new NoteView();
-            noteView.renderList(appunti, `Appunti: ${argNome}`, (noteId) => {
-                this.handleViewNote(noteId);
-            });
 
-            if (this.model.currentUser?.ruolo === "studente") {
-                const btnCreate = document.createElement('button');
-                btnCreate.className = 'btn btn-primary mt-3';
-                btnCreate.textContent = '+ Crea Nuovo Appunto';
-                btnCreate.onclick = () => this.showCreateNote(argId);
-                document.getElementById('main-content').appendChild(btnCreate);
-            }
+            const onCreateAction = (this.model.currentUser?.ruolo === "studente") 
+                ? () => this.showCreateNote(argId) 
+                : null;
+
+            noteView.renderList(
+                appunti, 
+                `Appunti: ${argNome}`, 
+                (noteId) => this.handleViewNote(noteId),
+                onCreateAction
+            );
+
         } catch (e) {
+            console.error(e);
             this.view.showError("Errore caricamento appunti.");
         }
     }
@@ -227,8 +219,6 @@ class AppPresenter {
 
     handleShowAdminDashboard() {
         console.log("Sto passando al modulo Admin...");
-        // Nascondiamo la sidebar se vogliamo "un'altra pagina" virtuale
-        // document.getElementById('sidebar-wrapper').style.display = 'none';
         const adminView = new AdminView();        
         const adminPresenter = new AdminPresenter(this.model, adminView);
         adminPresenter.init();

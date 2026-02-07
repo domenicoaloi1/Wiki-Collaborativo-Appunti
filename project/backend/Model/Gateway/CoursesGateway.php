@@ -65,7 +65,13 @@ class CoursesGateway extends AbstractGateway implements ICoursesGateway{
     }
 
     public function deleteCourse(int $id): void{
-        $sql = "DELETE FROM corsi WHERE id = ?";
-        $this->pdo->prepare($sql)->execute([$id]);
+        $sql = "";
+        $params = [$id];
+        try {
+            $sql = "DELETE FROM corsi WHERE id = ?";
+            $this->pdo->prepare($sql)->execute([$id]);
+        } catch (\Exception $e) {
+            $this->handleGatewayError(__METHOD__, $e, $sql, $params);
+        }
     }
 }

@@ -81,13 +81,6 @@ class ArgomentiGateway extends AbstractGateway implements IArgomentiGateway{
         }
     }
 
-    // public function updateArgomento(int $id, string $nome): void{
-    //     $this->pdo->prepare("UPDATE argomenti SET nome = ? WHERE id = ?")
-    //     ->execute([$nome, $id]);
-    //     $this->pdo->commit();
-    // }
-
-
     public function updateArgomento(int $id, string $nome): void{
         $this->pdo->beginTransaction();
         $sql = "";
@@ -102,8 +95,4 @@ class ArgomentiGateway extends AbstractGateway implements IArgomentiGateway{
         }
     }
 
-
-    public function deleteArgomento(int $id): void{
-        throw new Exception("Not Implemented Yet");
-    }
 }

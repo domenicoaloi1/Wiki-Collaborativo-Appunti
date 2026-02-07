@@ -123,6 +123,33 @@ class AppModel extends EventEmitter{
         return data.user;
     }
 
+    async logout() {
+        try {
+            await fetch(`${this.apiBase}/logout`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } finally {
+            this.currentUser = null;
+            localStorage.removeItem('user');
+        }
+    }
+
+    async register(email, password) {
+        const response = await fetch(`${this.apiBase}/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || "Registrazione fallita");
+        }
+
+        return await response.json();
+    }
+
     // --- ADMIN ---
 
     // ----- Corsi
