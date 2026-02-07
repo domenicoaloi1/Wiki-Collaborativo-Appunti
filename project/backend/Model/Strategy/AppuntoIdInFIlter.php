@@ -7,11 +7,10 @@ class AppuntoIdInFilter implements FilterStrategy {
     public function __construct(array $ids) {
         $this->ids = array_map('intval', $ids);
     }
-
+    
     public function buildCriteria(QueryObject $query): void {
         if (!empty($this->ids)) {
-            $valueList = implode(',', $this->ids);
-            $query->addCriteria(new Criteria('appunto_id', 'IN', "($valueList)"));
+            $query->addCriteria(new Criteria('appunto_id', 'IN', $this->ids));
         }
     }
 }

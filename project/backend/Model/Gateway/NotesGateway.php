@@ -10,35 +10,41 @@ class NotesGateway extends AbstractGateway implements INotesGateway{
     public function getNotes(FilterStrategy $strategy): array {
         $qo = new QueryObject();
         $strategy->buildCriteria($qo);
-
+        $fullSql = "";
         $params = [];
-        $baseSql = "SELECT * FROM appunti";
-        $where = $this->buildWhereClause($qo, $params);
+        try{
+            $baseSql = "SELECT * FROM appunti";
+            $where = $this->buildWhereClause($qo, $params);
+            $fullSql = $baseSql . $where;
+            $stmt = $this->pdo->prepare($fullSql);
+            $stmt->execute($params);
         
-        $stmt = $this->pdo->prepare($baseSql . $where);
-        $stmt->execute($params);
-        
-        $notes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $notes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // RF5: Caricamento contenuto dal File System (se la strategia è un IdFilter)
-        if ($strategy instanceof IdFilter && !empty($notes)) {
-            $note = &$notes[0]; // Riferimento al primo (e unico) risultato
-            
-            if (!empty($note['file_path'])) {
-                // NotesGateway è in Model/Gateway/, quindi salgo di due livelli (../../)
-                $fullPath = __DIR__ . '/../../' . $note['file_path'];
+            // RF5: Caricamento contenuto dal File System (se la strategia è un IdFilter)
+            if ($strategy instanceof IdFilter && !empty($notes)) {
+                $note = &$notes[0]; // Riferimento al primo (e unico) risultato
+                
+                if (!empty($note['file_path'])) {
+                    // NotesGateway è in Model/Gateway/, quindi salgo di due livelli (../../)
+                    $fullPath = __DIR__ . '/../../' . $note['file_path'];
 
-                if (file_exists($fullPath)) {
-                    $note['contenuto'] = file_get_contents($fullPath);
+                    if (file_exists($fullPath)) {
+                        $note['contenuto'] = file_get_contents($fullPath);
+                    } else {
+                        $note['contenuto'] = "Errore: Il file non è stato trovato nel percorso " . $note['file_path'];
+                    }
                 } else {
-                    $note['contenuto'] = "Errore: Il file non è stato trovato nel percorso " . $note['file_path'];
+                    $note['contenuto'] = "Nessun percorso file associato a questo appunto.";
                 }
-            } else {
-                $note['contenuto'] = "Nessun percorso file associato a questo appunto.";
             }
-        }
 
-        return $notes;
+            return $notes;
+
+        } catch (\Exception $e) {
+            // Ora, se scoppia la SELECT, vedrai finalmente il log "parlante"
+            $this->handleGatewayError(__METHOD__, $e, $fullSql, $params);
+        }
     }
 
     /**
@@ -47,6 +53,8 @@ class NotesGateway extends AbstractGateway implements INotesGateway{
      */
     public function createNote(int $argId, int $uId, string $titolo, string $cont, int $corsoId): int {
         $this->pdo->beginTransaction();
+        $params = [$argId, $uId,  $titolo, $corsoId];
+        $sql="";
         try {
             // Inserimento (file_path DEFAULT NULL)
             $sql = "INSERT INTO appunti (titolo, argomento_id, utente_id) VALUES (?, ?, ?)";
@@ -66,9 +74,9 @@ class NotesGateway extends AbstractGateway implements INotesGateway{
 
             $this->pdo->commit();
             return $newId;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->pdo->rollBack();
-            throw new Exception("NotesGateway.createNote: " . $e->getMessage());
+            $this->handleGatewayError(__METHOD__, $e, $sql, $params);
         }
     }
 
@@ -84,34 +92,27 @@ class NotesGateway extends AbstractGateway implements INotesGateway{
 
 
     public function deleteNotes(FilterStrategy $strategy) {
+        $fullSql = "";
+        $params = [];
         try {
             $qo = new QueryObject();
             $strategy->buildCriteria($qo);
 
-            $params = [];
             $baseSql = "DELETE FROM appunti "; 
             $where = $this->buildWhereClause($qo, $params);
-
+            $fullSql = $baseSql;
             if (empty($where)) {
                 throw new Exception("Attenzione: clausola WHERE vuota. Rischio cancellazione totale!");
             }
-
-            // $this->pdo->beginTransaction();
-
+            $fullSql = $baseSql . $where;
             $stmt = $this->pdo->prepare($baseSql . $where);
             $stmt->execute($params);
 
-            // $this->pdo->commit();
-
             // implementare cancellazione file
-
             return true;
 
-        } catch (Exception $e) {
-            if ($this->pdo->inTransaction()) {
-                $this->pdo->rollBack();
-            }
-            throw new Exception("NotesGateway.deleteNotes: " . $e->getMessage());
+        } catch (\Exception $e) {
+            $this->handleGatewayError(__METHOD__, $e, $fullSql, $params);
         }
     }
 

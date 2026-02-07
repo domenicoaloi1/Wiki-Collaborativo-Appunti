@@ -104,31 +104,28 @@ class VersionsGateway extends AbstractGateway implements IVersionsGateway {
     }
 
     public function deleteVersions(FilterStrategy $strategy) {
+        $params = [];
+        $fullSql = ""; 
         try {
             $qo = new QueryObject();
             $strategy->buildCriteria($qo);
 
-            $params = [];
+            
             $baseSql = "DELETE FROM versioni "; 
+            $fullSql = $baseSql; 
             $where = $this->buildWhereClause($qo, $params);
 
             if (empty($where)) {
                 throw new Exception("Attenzione: clausola WHERE vuota. Rischio cancellazione totale!");
             }
-
-            // $this->pdo->beginTransaction();
-
+            $fullSql = $baseSql . $where; 
             $stmt = $this->pdo->prepare($baseSql . $where);
             $stmt->execute($params);
 
-            // $this->pdo->commit();
             return true;
 
-        } catch (Exception $e) {
-            // if ($this->pdo->inTransaction()) {
-            //     $this->pdo->rollBack();
-            // }
-            throw new Exception("VersionsGateway.deleteVersions: query: " . $baseSql . $where . "; errore: " . $e->getMessage());
+        } catch (\Exception $e) {
+            $this->handleGatewayError(__METHOD__, $e, $fullSql, $params);
         }
     }
 

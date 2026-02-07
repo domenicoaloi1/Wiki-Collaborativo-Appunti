@@ -10,8 +10,7 @@ class ArgomentiIdInFilter implements FilterStrategy {
 
     public function buildCriteria(QueryObject $query): void {
         if (!empty($this->ids)) {
-            $valueList = implode(',', $this->ids);
-            $query->addCriteria(new Criteria('argomento_id', 'IN', "($valueList)"));
+            $query->addCriteria(new Criteria('argomento_id', 'IN', $this->ids));
         }
     }
 }

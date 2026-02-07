@@ -9,25 +9,60 @@ class CascadeService {
         $this->gateways = $gateways;
     }
 
+    private function handleError($step, $exception, $context = []) {
+        $logMsg = sprintf(
+            "[CascadeService] Errore durante lo step: '%s' | Messaggio: %s",
+            $step,
+            $exception->getMessage()
+        );
+        
+        if (!empty($context)) {
+            $logMsg .= " | Context: " . json_encode($context);
+        }
+
+        error_log($logMsg);
+
+        if ($this->pdo->inTransaction()) {
+            $this->pdo->rollBack();
+        }
+
+        throw new Exception("Errore Procedura a Cascata: " . $logMsg);
+        
+        // throw new Exception("Impossibile completare l'operazione richiesta. Errore interno."); 
+    }
+
     // --- CANCELLAZIONE APPUNTO E VERSIONI ---
     public function deleteNoteWithVersions(int $noteId) {
-        $this->gateways['version']->deleteVersions(new AppuntoIdInFilter([$noteId]));
-        $this->gateways['note']->deleteNotes(new IdInFilter([$noteId]));
-    }
-
-    // --- CANCELLAZIONE ARGOMENTO, APPUNTi E VERSIONI ---
-    public function deleteArgumentWithContent(int $topicId) {
-        $appunti = $this->gateways['note']->getNotes(new ArgomentiIdInFilter([$topicId]));
-        $ids = array_map(fn($n) => (int)$n['id'], $appunti);
-
-        if (!empty($ids)) {
-            $this->gateways['version']->deleteVersions(new AppuntoIdInFilter($ids));
-            $this->gateways['note']->deleteNotes(new IdInFilter($ids));
+        try {
+            $this->pdo->beginTransaction();
+            $this->gateways['version']->deleteVersions(new AppuntoFilter($noteId));
+            $this->gateways['note']->deleteNotes(new IdFilter($noteId));
+            $this->pdo->commit();
+        }catch(Exception $e) {
+            $this->handleError("Eliminazione Nota", $e, ["noteId" => $noteId]);
         }
-        $this->gateways['topic']->deleteArguments(new IdInFilter([$topicId]));
     }
 
-    // --- CANCELLAZIONE CORSO, ARGOMENTi, APPUNTi E VERSIONI ---
+    // --- CANCELLAZIONE ARGOMENTO, APPUNTI E VERSIONI ---
+    public function deleteArgumentWithContent(int $topicId) {
+        try {
+            $this->pdo->beginTransaction();
+            
+            $appunti = $this->gateways['note']->getNotes(new ArgomentoFilter($topicId));
+            $ids = array_map(fn($n) => (int)$n['id'], $appunti);
+
+            if (!empty($ids)) {
+                $this->gateways['version']->deleteVersions(new AppuntoIdInFilter($ids));
+                $this->gateways['note']->deleteNotes(new IdInFilter($ids));
+            }
+            $this->gateways['topic']->deleteArguments(new IdFilter($topicId));
+            $this->pdo->commit();
+        } catch (Exception $e) {
+            $this->handleError("Eliminazione Argomento", $e, ["topicId" => $topicId]);
+        }
+    }
+
+    // --- CANCELLAZIONE CORSO, ARGOMENTI, APPUNTI E VERSIONI ---
     public function deleteFullCourse(int $courseId) {
         try {
             $this->pdo->beginTransaction();
@@ -50,8 +85,7 @@ class CascadeService {
 
             $this->pdo->commit();
         } catch (Exception $e) {
-            if ($this->pdo->inTransaction()) $this->pdo->rollBack();
-            throw $e;
+            $this->handleError("Eliminazione Corso", $e, ["courseId" => $courseId]);
         }
     }
 }

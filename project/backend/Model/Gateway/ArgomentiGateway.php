@@ -39,45 +39,45 @@ class ArgomentiGateway extends AbstractGateway implements IArgomentiGateway{
     }
 
     public function createArgomento(int $corsoId, string $nome): int {
+        $sql = "";
+        $params = [$corsoId,$nome];
         $this->pdo->beginTransaction();
         try {
+            
             $sql = "INSERT INTO argomenti (corso_id, nome) VALUES (?, ?)";
             $this->pdo->prepare($sql)->execute([$corsoId, $nome]);
             $newId = (int)$this->pdo->lastInsertId();
             $this->pdo->commit();
             return $newId;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->pdo->rollBack();
-            throw new Exception("ArgomentiGateway.createArgomento: " . $e->getMessage());
+            $this->handleGatewayError(__METHOD__, $e, $sql, $params);
         }
     }
     
     public function deleteArguments(FilterStrategy $strategy) {
+        $params = [];
+        $fullSql = "";
         try {
             $qo = new QueryObject();
             $strategy->buildCriteria($qo);
 
-            $params = [];
+            
             $baseSql = "DELETE FROM argomenti "; 
+            $fullSql = $baseSql;
             $where = $this->buildWhereClause($qo, $params);
 
             if (empty($where)) {
                 throw new Exception("Attenzione: clausola WHERE vuota. Rischio cancellazione totale!");
             }
-
-            //$this->pdo->beginTransaction();
-
+            $fullSql = $baseSql . $where;
             $stmt = $this->pdo->prepare($baseSql . $where);
             $stmt->execute($params);
 
-            //$this->pdo->commit();
             return true;
 
-        } catch (Exception $e) {
-            // if ($this->pdo->inTransaction()) {
-            //     $this->pdo->rollBack();
-            // }
-            throw new Exception("ArgomentiGateway.deleteArguments: " . $e->getMessage());
+        } catch (\Exception $e) {
+            $this->handleGatewayError(__METHOD__, $e, $fullSql, $params);
         }
     }
 

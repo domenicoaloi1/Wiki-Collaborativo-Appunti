@@ -35,6 +35,8 @@ class CoursesGateway extends AbstractGateway implements ICoursesGateway{
     
     public function createCourse(string $nome): int{
         $this->pdo->beginTransaction();
+        $sql = "";
+        $params = [$nome];
         try {
             // Inserimento (file_path DEFAULT NULL)
             $sql = "INSERT INTO corsi (nome) VALUES (?)";
@@ -42,9 +44,9 @@ class CoursesGateway extends AbstractGateway implements ICoursesGateway{
             $newId = (int)$this->pdo->lastInsertId();
             $this->pdo->commit();
             return $newId;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->pdo->rollBack();
-            throw new Exception("CoursesGateway.createCourse: " . $e->getMessage());
+            $this->handleGatewayError(__METHOD__, $e, $sql, $params);
         }
     }
 

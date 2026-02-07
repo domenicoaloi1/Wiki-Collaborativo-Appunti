@@ -345,52 +345,6 @@ $router->add('POST', '/corso/elimina', function() use ($cascadeService) {
     try {
         $cascadeService->deleteFullCourse((int)$data['id']);
         echo json_encode(["status" => "success"]);
-        // $listaArgomentiId = [];
-        // $listaAppuntiId = [];
-
-        // // getArgomenti
-        // $courseStrategy = new CourseFilter((int)$data['id']);
-        // $argomenti = $argomentiGateway->getArgomenti($courseStrategy);
-
-        // foreach ($argomenti as $argomento) {
-        //     $listaArgomentiId[] = ((int)$argomento['id']);
-        // }
-
-        // //$listaargomenti = implode(', ', $listaArgomentiId);
-
-        // if (count($listaArgomentiId) > 0){
-        //     // getAppunti
-        //     $argomentiIdInStrategy = new ArgomentiIdInFilter($listaArgomentiId);
-        //     $appunti = $notesGateway->getNotes($argomentiIdInStrategy);
-
-        //     foreach ($appunti as $appunto) {
-        //         $listaAppuntiId[] = ((int)$appunto['id']);
-        //     }
-        // }
-
-        // //$listaidappunti = implode(', ', $listaAppuntiId);
-        // //throw new Exception("listaAppuntiId: ".$listaidappunti . "listaArgomentiId:" .$listaargomenti);
-
-        // if (count($listaAppuntiId) > 0){
-        //     // delVersioni
-        //     $appuntoIdInFIlterStrategy = new AppuntoIdInFilter($listaAppuntiId);
-        //     $versionsGateway->deleteVersions($appuntoIdInFIlterStrategy);
-
-        //     // delAppunti
-        //     $listaAppuntiIdStrategy = new IdInFilter($listaAppuntiId);
-        //     $notesGateway->deleteNotes($listaAppuntiIdStrategy);
-        // }
-        
-        // if (count($listaArgomentiId) > 0){
-        //     // delArgomenti
-        //     $listaArgomentiIdStrategy = new IdInFilter($listaArgomentiId);
-        //     $argomentiGateway->deleteArguments($listaArgomentiIdStrategy);
-        // }
-
-        // // delCorso
-        // $coursesGateway->deleteCourse((int)$data['id']);
-
-        // echo json_encode(["status" => "success"]);
     } catch (Exception $e) {
         http_response_code(403);
         echo json_encode(["error" => $e->getMessage()]);
@@ -403,29 +357,6 @@ $router->add('POST', '/argomento/elimina', function() use ($cascadeService) {
     try {
         $cascadeService->deleteArgumentWithContent((int)$data['id']);
         echo json_encode(["status" => "success"]);
-        // $listaAppuntiId = [];
-
-        // // getAppunti
-        // $argomentoStrategy = new ArgomentoFilter((int)$data['id']);
-        // $appunti = $notesGateway->getNotes($argomentoStrategy);
-
-        // foreach ($appunti as $appunto) {
-        //     $listaAppuntiId[] = ((int)$appunto['id']);
-        // }
-
-        // if (!empty($listaAppuntiId)){
-        //     // delVersioni
-        //     $appuntoIdInFIlterStrategy = new AppuntoIdInFilter($listaAppuntiId);
-        //     $versionsGateway->deleteVersions($appuntoIdInFIlterStrategy);
-
-        //     // delAppunti
-        //     $listaAppuntiIdStrategy = new IdInFilter($listaAppuntiId);
-        //     $notesGateway->deleteNotes($listaAppuntiIdStrategy);
-        // }
-
-        // // delArgomento
-        // $argomentiGateway->deleteArgomento((int)$data['id']);
-        // echo json_encode(["status" => "success"]);
     } catch (Exception $e) {
         http_response_code(403);
         echo json_encode(["error" => $e->getMessage()]);
@@ -438,14 +369,6 @@ $router->add('POST', '/appunto/elimina', function() use ($cascadeService) {
     try {
         $cascadeService->deleteNoteWithVersions((int)$data['id']);
         echo json_encode(["status" => "success"]);
-        // delVersioni
-        // $appuntoIdInFIlterStrategy = new AppuntoIdInFilter([(int)$data['id']]);
-        // $versionsGateway->deleteVersions($appuntoIdInFIlterStrategy);
-
-        // // delApunto
-        // $notesGateway->deleteNote((int)$data['id']);
-
-        // echo json_encode(["status" => "success"]);
     } catch (Exception $e) {
         http_response_code(403);
         echo json_encode(["error" => $e->getMessage()]);
