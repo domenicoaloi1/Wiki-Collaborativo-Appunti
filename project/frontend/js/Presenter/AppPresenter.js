@@ -11,11 +11,14 @@ class AppPresenter {
         try {
             const courses = await this.model.fetchCorsi();
 
+            this.view.renderHomeButton(() => this.goToHome());
+
             this.view.renderSidebar(courses, (id) => this.handleCourseSelection(id));
+
             this.view.bindSearch((query) => this.handleSearch(query));
             this.view.updateNavbar(this.model.currentUser);
             this.bindNavbarEvents();
-
+            
             this.goToHome();
         } catch (error) {
             console.error(error);
@@ -232,18 +235,14 @@ class AppPresenter {
     }
 
     goToHome() {
-        console.log("Pulsante Home premuto!");
         const user = this.model.currentUser;
-        console.log("Navigazione Home - Utente:", user ? user.nome : "Ospite");        
         
         if (!user) {
-                console.warn("Nessun utente trovato, ritorno al login...");
-                this.view.renderGuestWelcome(() => this.showLogin());                
-                return;
+            this.view.renderGuestWelcome(() => this.showLogin());
+            return;
         }
 
         this.view.renderWelcomeUser(user, () => {
-            console.log("Utente trovato, inizializzo AdminPresenter dalla Home...");
             const adminView = new AdminView();
             const adminPresenter = new AdminPresenter(this.model, adminView);
             adminPresenter.init();

@@ -8,17 +8,34 @@ class AppView extends BaseView{
 
     // --- RENDERING SIDEBAR ---
 
-    renderSidebar(courses, onCourseClick, onHomeClick) {
+
+    renderHomeButton(onHomeClick) {
+        const container = document.getElementById('home-button-container');
+        if (!container) return;
+
+        container.innerHTML = '';
+        const btnHome = this._createElement('button', 'btn btn-outline-primary w-100 d-flex align-items-center justify-content-center');
+        
+        btnHome.innerHTML = '<i class="bi bi-house-door-fill me-2"></i> Torna alla pagina iniziale';
+        
+        btnHome.onclick = (e) => {
+            e.preventDefault();
+            onHomeClick();
+        };
+
+        container.appendChild(btnHome);
+    }
+
+    bindSearch(handler) {
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => handler(e.target.value));
+        }
+    }
+
+    renderSidebar(courses, onCourseClick) {
         if (!this.sidebarContainer) return;
         this.sidebarContainer.innerHTML = '';
-
-        // --- NUOVO: TASTO HOME ---
-        // const btnHome = this._createElement('button', 'btn btn-outline-primary w-100 mb-3 d-flex align-items-center justify-content-center');
-        // btnHome.innerHTML = '<i class="bi bi-house-door-fill me-2"></i> Home';
-        // btnHome.onclick = onHomeClick;
-        
-        // this.sidebarContainer.appendChild(btnHome);
-        // -------------------------
 
         courses.forEach(course => {
             const container = this._createElement('div', 'course-group mb-2');
@@ -122,12 +139,7 @@ class AppView extends BaseView{
         }
     }
 
-    bindSearch(handler) {
-        const searchInput = document.getElementById('search-input');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => handler(e.target.value));
-        }
-    }
+
 
     renderGuestWelcome(onLoginClick) {
         this.mainContent.innerHTML = '';
