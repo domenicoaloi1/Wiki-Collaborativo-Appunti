@@ -90,31 +90,39 @@ class NotesGateway extends AbstractGateway implements INotesGateway{
         }
     }
 
-
+    // RF10
     public function deleteNotes(FilterStrategy $strategy) {
         $fullSql = "";
         $params = [];
         try {
             $qo = new QueryObject();
             $strategy->buildCriteria($qo);
-
-            $baseSql = "DELETE FROM appunti "; 
             $where = $this->buildWhereClause($qo, $params);
-            $fullSql = $baseSql;
+
             if (empty($where)) {
-                throw new Exception("Attenzione: clausola WHERE vuota. Rischio cancellazione totale!");
+                throw new \Exception("Attenzione: clausola WHERE vuota. Operazione annullata.");
             }
-            $fullSql = $baseSql . $where;
-            $stmt = $this->pdo->prepare($baseSql . $where);
+
+            // Recupero i path prima di cancellare i record
+            $stmtPaths = $this->pdo->prepare("SELECT file_path FROM appunti" . $where);
+            $stmtPaths->execute($params);
+            $paths = $stmtPaths->fetchAll(PDO::FETCH_COLUMN);
+
+            // Cancellazione fisica dei record
+            $fullSql = "DELETE FROM appunti" . $where;
+            $stmt = $this->pdo->prepare($fullSql);
             $stmt->execute($params);
 
-            // implementare cancellazione file
-            return true;
+            // Pulizia centralizzata file e cartelle vuote
+            $this->deleteFilesAndCleanupDirs($paths);
 
+            return true;
         } catch (\Exception $e) {
             $this->handleGatewayError(__METHOD__, $e, $fullSql, $params);
         }
     }
+
+    // funzioni non utilizzate
 
     public function deleteNote($id): void  {
         $sql = "DELETE FROM appunti WHERE id = ?";

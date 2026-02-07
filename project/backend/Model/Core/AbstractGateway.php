@@ -35,6 +35,33 @@ abstract class AbstractGateway {
         return !empty($clauses) ? " WHERE " . implode(" AND ", $clauses) : "";
     }
 
+    /**
+     * Elimina i file fisici e rimuove le directory padre se rimangono vuote.
+     * Si ferma quando raggiunge la radice della storage o trova una cartella non vuota.
+     */
+    protected function deleteFilesAndCleanupDirs(array $relativePaths): void {
+        $baseDir = realpath(__DIR__ . '/../../');
+        $storageRoot = $baseDir . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'notes';
+
+        foreach ($relativePaths as $path) {
+            if (empty($path)) continue;
+
+            $fullPath = $baseDir . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
+
+            if (file_exists($fullPath)) {
+                unlink($fullPath); // Rimuove il file fisico
+
+                // Risalita per pulizia cartelle vuote (@rmdir fallisce se la directory non è vuota)
+                $currentDir = dirname($fullPath);
+                while ($currentDir !== false && strpos($currentDir, $storageRoot) === 0 && $currentDir !== $storageRoot) {
+                    if (!@rmdir($currentDir)) {
+                        break; // La cartella contiene altri file/cartelle, ci fermiamo
+                    }
+                    $currentDir = dirname($currentDir);
+                }
+            }
+        }
+    }
 
     protected function handleGatewayError($method, $exception, $sql = null, $params = []) {
         $separator = str_repeat("=", 50);
@@ -57,4 +84,5 @@ abstract class AbstractGateway {
         // Rilancia per il frontend
         throw new \Exception("Gateway Error in $method: " . $exception->getMessage());
     }
+    
 }

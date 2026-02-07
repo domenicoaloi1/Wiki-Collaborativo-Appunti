@@ -29,7 +29,7 @@ class VersionsGateway extends AbstractGateway implements IVersionsGateway {
         $strategy->buildCriteria($qo);
 
         $params = [];
-        $baseSql = "SELECT appunto_id, utente_id, testo_percorso FROM versioni";
+        $baseSql = "SELECT appunto_id, utente_id, file_path FROM versioni";
         $where = $this->buildWhereClause($qo, $params);
 
         $stmt = $this->pdo->prepare($baseSql . $where);
@@ -38,7 +38,7 @@ class VersionsGateway extends AbstractGateway implements IVersionsGateway {
 
         if (!$row) throw new Exception("Versione non trovata.");
 
-        $fullPath = __DIR__ . '/../../' . $row['testo_percorso'];
+        $fullPath = __DIR__ . '/../../' . $row['file_path'];
         if (!file_exists($fullPath)) throw new Exception("File fisico della versione mancante.");
 
         $testo = file_get_contents($fullPath);
@@ -103,6 +103,7 @@ class VersionsGateway extends AbstractGateway implements IVersionsGateway {
         return $versions;
     }
 
+    // RF10
     public function deleteVersions(FilterStrategy $strategy) {
         $params = [];
         $fullSql = ""; 
@@ -110,17 +111,27 @@ class VersionsGateway extends AbstractGateway implements IVersionsGateway {
             $qo = new QueryObject();
             $strategy->buildCriteria($qo);
 
-            
-            $baseSql = "DELETE FROM versioni "; 
-            $fullSql = $baseSql; 
             $where = $this->buildWhereClause($qo, $params);
 
             if (empty($where)) {
-                throw new Exception("Attenzione: clausola WHERE vuota. Rischio cancellazione totale!");
+                throw new \Exception("Attenzione: clausola WHERE vuota. Operazione annullata.");
             }
-            $fullSql = $baseSql . $where; 
-            $stmt = $this->pdo->prepare($baseSql . $where);
-            $stmt->execute($params);
+
+            // Recupero i path delle versioni PRIMA di cancellare i record
+            $fullSql = "SELECT file_path FROM versioni" . $where;
+            $stmtSelect = $this->pdo->prepare($fullSql);
+            $stmtSelect->execute($params);
+            $filePaths = $stmtSelect->fetchAll(PDO::FETCH_COLUMN);
+
+            // Cancellazione dei record dal database
+            $fullSql = "DELETE FROM versioni" . $where; 
+            $stmtDelete = $this->pdo->prepare($fullSql);
+            $stmtDelete->execute($params);
+
+            // PULIZIA CENTRALIZZATA: cancella i file e rimuove le cartelle vuote
+            // Questo metodo risalirà da .../versions/1/v1.md eliminando la cartella '1' 
+            // e poi la cartella 'versions' se non ci sono altri appunti.
+            $this->deleteFilesAndCleanupDirs($filePaths);
 
             return true;
 
