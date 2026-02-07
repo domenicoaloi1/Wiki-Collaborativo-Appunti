@@ -138,6 +138,7 @@ class AppModel extends EventEmitter{
 
         if (response.ok) {
             this.emit('course:updated');
+            this.view.showSuccess("Corso creato correttamente");
         }
 
         return await response.json();
@@ -152,7 +153,8 @@ class AppModel extends EventEmitter{
         });
 
         if (response.ok) {
-            this.emit('course:updated'); 
+            this.emit('course:updated');
+            this.view.showSuccess("Corso cancellato correttamente");
         }
 
         return await response.json();
@@ -169,6 +171,7 @@ class AppModel extends EventEmitter{
 
         if (response.ok) {
             this.emit('course:updated'); 
+            this.view.showSuccess("Titolo corso aggiornato correttamente");
         }
         return await response.json();
     }
@@ -185,6 +188,7 @@ class AppModel extends EventEmitter{
         
         if (response.ok) {
             this.emit('arguments:updated', corsoId); 
+            this.view.showSuccess("Argomento creato correttamente");
         }
         return await response.json();
     }
@@ -199,11 +203,12 @@ class AppModel extends EventEmitter{
         
         if (response.ok) {
             this.emit('arguments:updated', corsoId);
+            this.view.showSuccess("Argomento cancellato correttamente");
         }
         return await response.json();
     }
 
-    async renameArgomento(id, nuovoNome) {
+    async renameArgomento(id, nuovoNome, corsoId) {
         const response = await fetch(`${this.apiBase}/argomento/modifica`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -213,6 +218,7 @@ class AppModel extends EventEmitter{
 
         if (response.ok) {
             this.emit('arguments:updated', corsoId);
+            this.view.showSuccess("Titolo argomento aggiornato correttamente");
         }
         return await response.json();
     }
@@ -229,6 +235,7 @@ class AppModel extends EventEmitter{
         
         if (response.ok) {
             this.emit('note:updated', argomentoId); 
+            this.view.showSuccess("Nota creata correttamente");
         }
         return await response.json();
     }
@@ -243,11 +250,12 @@ class AppModel extends EventEmitter{
         
         if (response.ok) {
             this.emit('note:updated', argomentoId);
+            this.view.showSuccess("Nota eliminata correttamente");
         }
         return await response.json();
     }
 
-    async renameNote(id, nuovoNome) {
+    async renameNote(id, nuovoNome, argomentoId) {
         const response = await fetch(`${this.apiBase}/appunto/modifica`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -257,6 +265,7 @@ class AppModel extends EventEmitter{
 
         if (response.ok) {
             this.emit('note:updated', argomentoId);
+            this.view.showSuccess("Titolo appunto aggiornato correttamente");
         }
         return await response.json();
     }

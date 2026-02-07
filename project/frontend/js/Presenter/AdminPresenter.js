@@ -33,9 +33,7 @@ class AdminPresenter {
             this.view.showNotification("Il nome del corso è troppo corto!");
             return;
         }
-
         try {
-            console.log("AdminPresenter.handleSaveCourse chiama model.createCourse");
             await this.model.createCourse(nome);
         } catch (e) {
             console.error("Errore salvataggio:", e);
@@ -45,7 +43,6 @@ class AdminPresenter {
     async handleDeleteCourse(id) {
         try {
             await this.model.deleteCourse(id);
-            this.view.showSuccess("Corso eliminato correttamente.");
             this.init();
         } catch (e) {
             this.view.showError("Errore eliminazione: " + e.message);
@@ -53,10 +50,12 @@ class AdminPresenter {
     }
     
     async handleEditCourse(id, nuovoNome) {
+        if (!nuovoNome || nuovoNome.trim().length < 3) {
+            this.view.showNotification("Il nome del corso è troppo corto!");
+            return;
+        }
         try {
             await this.model.renameCourse(id, nuovoNome);
-            await this.init(); 
-            this.view.showNotification("Nome aggiornato correttamente", "success");
         } catch (e) {
             this.view.showNotification("Errore: " + e.message, "danger");
         }
@@ -79,10 +78,12 @@ class AdminPresenter {
     }
     
     async handleEditArgument(id, nuovoNome) {
+        if (!nuovoNome || nuovoNome.trim().length < 3) {
+            this.view.showNotification("Nome troppo corto!");
+            return;
+        }
         try {
-            await this.model.renameArgomento(id, nuovoNome);
-            await this.init(); 
-            this.view.showNotification("Nome aggiornato correttamente", "success");
+            await this.model.renameArgomento(id, nuovoNome, this.currentCorsoId);
         } catch (e) {
             this.view.showNotification("Errore: " + e.message, "danger");
         }
@@ -107,10 +108,12 @@ class AdminPresenter {
     }
     
     async handleEditNoteTitle(id, nuovoNome) {
+        if (!nuovoNome || nuovoNome.trim().length < 3) {
+            this.view.showNotification("Nome troppo corto!");
+            return;
+        }
         try {
-            await this.model.renameNote(id, nuovoNome);
-            await this.showArgomenti(); 
-            this.view.showNotification("Nome aggiornato correttamente", "success");
+            await this.model.renameNote(id, nuovoNome, this.currentArgId);
         } catch (e) {
             this.view.showNotification("Errore: " + e.message, "danger");
         }

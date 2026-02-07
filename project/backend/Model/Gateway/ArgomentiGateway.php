@@ -81,11 +81,27 @@ class ArgomentiGateway extends AbstractGateway implements IArgomentiGateway{
         }
     }
 
+    // public function updateArgomento(int $id, string $nome): void{
+    //     $this->pdo->prepare("UPDATE argomenti SET nome = ? WHERE id = ?")
+    //     ->execute([$nome, $id]);
+    //     $this->pdo->commit();
+    // }
+
+
     public function updateArgomento(int $id, string $nome): void{
-        $this->pdo->prepare("UPDATE argomenti SET nome = ? WHERE id = ?")
-        ->execute([$nome, $id]);
-        $this->pdo->commit();
+        $this->pdo->beginTransaction();
+        $sql = "";
+        $params = [$nome, $id];
+        try {
+            $sql = "UPDATE argomenti SET nome = ? WHERE id = ?";
+            $this->pdo->prepare($sql)->execute([$nome, $id]);
+            $this->pdo->commit();
+        } catch (\Exception $e) {
+            $this->pdo->rollBack();
+            $this->handleGatewayError(__METHOD__, $e, $sql, $params);
+        }
     }
+
 
     public function deleteArgomento(int $id): void{
         throw new Exception("Not Implemented Yet");
