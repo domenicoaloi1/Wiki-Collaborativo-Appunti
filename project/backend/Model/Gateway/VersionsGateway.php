@@ -68,7 +68,7 @@ class VersionsGateway extends AbstractGateway implements IVersionsGateway {
         // Salvataggi
         $path = $relativeDir . "/" . $fileName;
         file_put_contents(__DIR__ . "/../../" . $path, $testoDaArchiviare);
-        $sql = "INSERT INTO versioni (appunto_id, utente_id, testo_percorso) VALUES (?, ?, ?)";
+        $sql = "INSERT INTO versioni (appunto_id, utente_id, file_path) VALUES (?, ?, ?)";
         $this->pdo->prepare($sql)->execute([$appuntoId, $utenteId, $path]);
     }
 
