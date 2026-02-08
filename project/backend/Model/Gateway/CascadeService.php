@@ -34,40 +34,34 @@ class CascadeService {
     // --- CANCELLAZIONE APPUNTO E VERSIONI ---
     public function deleteNoteWithVersions(int $noteId) {
         try {
-            $this->pdo->beginTransaction();
             $this->gateways['version']->deleteVersions(new AppuntoFilter($noteId));
             $this->gateways['note']->deleteNotes(new IdFilter($noteId));
-            $this->pdo->commit();
         }catch(Exception $e) {
             $this->handleError("Eliminazione Nota", $e, ["noteId" => $noteId]);
         }
     }
 
     // --- CANCELLAZIONE ARGOMENTO, APPUNTI E VERSIONI ---
-    public function deleteArgumentWithContent(int $topicId) {
-        try {
-            $this->pdo->beginTransaction();
-            
-            $appunti = $this->gateways['note']->getNotes(new ArgomentoFilter($topicId));
+    public function deleteArgumentWithContent(int $argumentId) {
+        try {            
+            $appunti = $this->gateways['note']->getNotes(new ArgomentoFilter($argumentId));
             $ids = array_map(fn($n) => (int)$n['id'], $appunti);
 
             if (!empty($ids)) {
                 $this->gateways['version']->deleteVersions(new AppuntoIdInFilter($ids));
                 $this->gateways['note']->deleteNotes(new IdInFilter($ids));
             }
-            $this->gateways['topic']->deleteArguments(new IdFilter($topicId));
-            $this->pdo->commit();
+            $this->gateways['argument']->deleteArguments(new IdFilter($argumentId));
         } catch (Exception $e) {
-            $this->handleError("Eliminazione Argomento", $e, ["topicId" => $topicId]);
+            $this->handleError("Eliminazione Argomento", $e, ["argumentId" => $argumentId]);
         }
     }
 
     // --- CANCELLAZIONE CORSO, ARGOMENTI, APPUNTI E VERSIONI ---
     public function deleteFullCourse(int $courseId) {
         try {
-            $this->pdo->beginTransaction();
 
-            $argomenti = $this->gateways['topic']->getArgomenti(new CourseFilter($courseId));
+            $argomenti = $this->gateways['argument']->getArgomenti(new CourseFilter($courseId));
             $argIds = array_map(fn($a) => (int)$a['id'], $argomenti);
 
             if (!empty($argIds)) {
@@ -78,12 +72,11 @@ class CascadeService {
                     $this->gateways['version']->deleteVersions(new AppuntoIdInFilter($noteIds));
                     $this->gateways['note']->deleteNotes(new IdInFilter($noteIds));
                 }
-                $this->gateways['topic']->deleteArguments(new IdInFilter($argIds));
+                $this->gateways['argument']->deleteArguments(new IdInFilter($argIds));
             }
             
             $this->gateways['course']->deleteCourse($courseId);
 
-            $this->pdo->commit();
         } catch (Exception $e) {
             $this->handleError("Eliminazione Corso", $e, ["courseId" => $courseId]);
         }

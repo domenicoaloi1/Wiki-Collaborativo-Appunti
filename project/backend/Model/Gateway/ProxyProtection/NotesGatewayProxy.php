@@ -27,10 +27,17 @@ class NotesGatewayProxy implements INotesGateway {
     public function getNotes(FilterStrategy $strategy) {
         return $this->realGateway->getNotes($strategy);
     }
-
+    
     public function updateNoteContent(int $id, string $newContent) {
         if ($this->user && ($this->user['ruolo'] === 'studente')) {
             return $this->realGateway->updateNoteContent($id, $newContent);
+        }
+        $this->unauthorized();
+    }    
+
+    public function updateLastUserTouchedNote(int $id, int $newUserId) {
+        if ($this->user && ($this->user['ruolo'] === 'studente')) {
+            return $this->realGateway->updateLastUserTouchedNote($id, $newUserId);
         }
         $this->unauthorized();
     }
