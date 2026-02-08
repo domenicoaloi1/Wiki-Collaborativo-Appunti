@@ -194,7 +194,7 @@ class AppPresenter {
 
     async handleRestoreVersion(versioneId, noteId) {
         const messaggio = "Sei sicuro di voler ripristinare questa versione? Il testo attuale verrà archiviato e sostituito.";
-        this.view.showConfirm(messaggio, async () => {
+        this.view.showRestoreConfirm(messaggio, async () => {
             try {
                 const result = await this.model.restoreVersion(versioneId, this.model.currentUser.id);
                 this.view.showSuccess("Versione ripristinata correttamente!");

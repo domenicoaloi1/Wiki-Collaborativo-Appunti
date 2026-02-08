@@ -47,7 +47,6 @@ class AppModel extends EventEmitter{
         return await response.json();
     }
 
-
     async createNote(argomentoId, utenteId, titolo, contenuto) {
         const response = await fetch(`${this.apiBase}/appunto/crea`, {
             method: 'POST',
@@ -251,21 +250,6 @@ class AppModel extends EventEmitter{
     }
     
     // ----- Appunti
-
-    async createNote(argomentoId, titolo, contenuto) {
-        const response = await fetch(`${this.apiBase}/appunto/crea`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ argomento_id: argomentoId, titolo, contenuto }),
-            credentials: 'include'
-        });
-        
-        if (response.ok) {
-            this.emit('note:updated', argomentoId); 
-            this.view.showSuccess("Nota creata correttamente");
-        }
-        return await response.json();
-    }
 
     async deleteNote(id, argomentoId) {
         const response = await fetch(`${this.apiBase}/appunto/elimina`, {
