@@ -60,6 +60,7 @@ body {
 .editor-height {
     height: 70vh; /* Occupa il 70% dell'altezza dello schermo */
     min-height: 500px;
+    margin-bottom: 0; /* Rimuove margini che potrebbero sfasare l'allineamento */
 }
 
 /* Scrollbar personalizzata per la preview (opzionale, per estetica) */
@@ -152,6 +153,12 @@ body {
     background-color: #fff;
 }
 
+/* Forza l'allineamento perfetto delle due colonne */
+.note-container .row.g-3 {
+    display: flex;
+    align-items: stretch; /* Fa sì che le due colonne siano alte uguali */
+}
+
 @media print {
     /* Nascondi tutto ciò che non serve */
     nav, .sidebar, .btn-group, .btn, .history-section, h2.mb-3, textarea {
@@ -178,5 +185,70 @@ body {
     /* Evita che le tabelle vengano tagliate a metà tra le pagine */
     table, pre, blockquote {
         page-break-inside: avoid;
+    }
+}
+
+
+
+/* --- GESTIONE SIDEBAR MOBILE --- */
+@media (max-width: 767.98px) {
+    #sidebar {
+        position: fixed;
+        top: 56px; /* Altezza standard navbar bootstrap */
+        left: 0;
+        z-index: 1000; /* Sopra al contenuto principale */
+        height: calc(100vh - 56px);
+        width: 100%; /* Oppure 280px se la vuoi parziale */
+        background-color: white !important;
+        box-shadow: 5px 0 10px rgba(0,0,0,0.1);
+    }
+    
+    /* Quando la sidebar è aperta su mobile, impediamo lo scroll del corpo */
+    body.sidebar-open {
+        overflow: hidden;
+    }
+}
+
+/* --- GESTIONE DESKTOP --- */
+@media (min-width: 768px) {
+    #sidebar {
+        height: calc(100vh - 56px);
+        position: sticky;
+        top: 56px;
+    }
+}
+
+/* Assicurati che il main-content non venga coperto su desktop */
+main {
+    min-height: calc(100vh - 56px);
+}
+
+
+/* Impedisce alla navbar di espandersi in altezza */
+.navbar {
+    min-height: 56px;
+    height: 56px;
+}
+
+.navbar .container-fluid {
+    flex-wrap: nowrap; /* Impedisce agli elementi di andare a capo */
+}
+
+/* Gestione testo utente per non coprire nulla */
+.navbar-text {
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+@media (max-width: 767.98px) {
+    /* Su mobile nascondiamo il testo dell'utente e lasciamo solo l'icona 
+       se lo spazio è davvero poco, per salvare il tasto home */
+    .navbar-text {
+        max-width: 80px !important;
+    }
+    
+    /* Assicurati che il pulsante home nel sidebar non sia troppo attaccato al top */
+    #home-button-container {
+        margin-top: 10px;
     }
 }

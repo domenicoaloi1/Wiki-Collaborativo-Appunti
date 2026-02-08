@@ -100,6 +100,7 @@ class AppPresenter {
     async handleArgomentoSelection(argId, argNome) {
         try {
             const appunti = await this.model.fetchAppunti(argId);
+            this.view.closeSidebarMobile();
             const noteView = new NoteView();
 
             const onCreateAction = (this.model.currentUser?.ruolo === "studente") 
@@ -123,6 +124,7 @@ class AppPresenter {
         if (query.length < 2) return;
         try {
             const results = await this.model.searchNotes(query);
+            this.view.closeSidebarMobile();
             const noteView = new NoteView();
             noteView.renderList(results, `Risultati per: "${query}"`, (noteId) => {
                 this.handleViewNote(noteId, null, null);

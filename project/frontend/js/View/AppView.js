@@ -102,6 +102,15 @@ class AppView extends BaseView{
         });
     }
 
+    closeSidebarMobile() {
+        if (window.innerWidth < 768) {
+            const sidebarElement = document.getElementById('sidebar');
+            // Usiamo l'istanza di Bootstrap se già esiste o ne creiamo una nuova per chiuderla
+            const bsCollapse = bootstrap.Collapse.getOrCreateInstance(sidebarElement);
+            bsCollapse.hide();
+        }
+    }
+
     // --- RENDERING MAIN CONTENT ---
     renderWelcomeUser(user, onAdminClick) {
         this.mainContent.innerHTML = '';
@@ -143,8 +152,11 @@ class AppView extends BaseView{
         btnContainer.innerHTML = '';
 
         if (user) {
-            const userInfo = this._createElement('span', 'navbar-text me-3 text-light');
-            userInfo.textContent = `👤 ${user.email} (${user.ruolo})`;
+            const userInfo = this._createElement('span', 'navbar-text me-3 text-light d-inline-block text-truncate', {
+                style: 'max-width: 150px; vertical-align: bottom;',
+                title: `${user.email} (${user.ruolo})`
+            });
+            userInfo.textContent = user.email.split('@')[0];
             
             const btnLogout = this._createElement('button', 'btn btn-outline-light btn-sm', { id: 'btn-logout' });
             btnLogout.textContent = 'Logout';

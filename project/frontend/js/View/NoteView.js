@@ -93,7 +93,7 @@ class NoteView extends BaseView {
         if (canEdit) {
             const row = this._createElement('div', 'row g-3 mb-4');
             
-            const colEditor = this._createElement('div', 'col-12 col-lg-6');
+            const colEditor = this._createElement('div', 'col-12 col-md-6');
             textarea = this._createElement('textarea', 'form-control editor-height', { 
                 placeholder: 'Scrivi in Markdown...',
                 style: 'font-family: monospace; resize: none; overflow-y: auto;'
@@ -101,7 +101,7 @@ class NoteView extends BaseView {
             textarea.value = note.contenuto || '';
             colEditor.appendChild(textarea);
 
-            const colPreview = this._createElement('div', 'col-12 col-lg-6');
+            const colPreview = this._createElement('div', 'col-12 col-md-6');
             previewDiv = this._createElement('div', 'markdown-body p-3 border rounded bg-white editor-height', {
                 style: 'overflow-y: auto;'
             });
