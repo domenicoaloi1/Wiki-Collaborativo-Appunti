@@ -39,6 +39,6 @@ class VersionsGatewayProxy implements IVersionsGateway {
     }
 
     private function unauthorized(): void {
-        throw new Exception("Accesso negato: non hai i permessi per archiviare nuove versioni.");
+        throw new Exception("Accesso negato: l'utente non dispone delle autorizzazioni necessarie per questa operazione.");
     }
 }
