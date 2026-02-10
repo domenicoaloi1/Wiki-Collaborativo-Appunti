@@ -100,6 +100,7 @@ class AppPresenter {
     async handleArgomentoSelection(argId, argNome) {
         try {
             const appunti = await this.model.fetchAppunti(argId);
+            this.view.closeSidebarMobile();
             const noteView = new NoteView();
 
             const onCreateAction = (this.model.currentUser?.ruolo === "studente") 
@@ -123,6 +124,7 @@ class AppPresenter {
         if (query.length < 2) return;
         try {
             const results = await this.model.searchNotes(query);
+            this.view.closeSidebarMobile();
             const noteView = new NoteView();
             noteView.renderList(results, `Risultati per: "${query}"`, (noteId) => {
                 this.handleViewNote(noteId, null, null);
@@ -152,10 +154,17 @@ class AppPresenter {
 
     async handleSaveVersion(noteId, testo) {
         try {
-            await this.model.saveVersion(noteId, testo, this.model.currentUser.id);
+            const nuovaVersione = await this.model.saveVersion(noteId, testo, this.model.currentUser.id);
+            
             this.view.showSuccess("Nuova versione salvata con successo!");
+
+            const historyList = document.getElementById('history-list');
+            if (historyList && historyList.innerHTML !== '') {
+                await this.handleShowHistory(noteId);
+            }
+
         } catch (e) {
-            this.view.showError(e.message);
+            this.view.showError("Errore durante il salvataggio: " + e.message);
         }
     }
 
@@ -165,7 +174,7 @@ class AppPresenter {
             const noteView = new NoteView();
             noteView.renderHistory(
                 history, 
-                (vId) => this.handleRestoreVersion(vId),
+                (vId) => this.handleRestoreVersion(vId, noteId),
                 (vId, date) => this.handlePreviewVersion(vId, date)
             );
         } catch (e) {
@@ -183,19 +192,13 @@ class AppPresenter {
         }
     }
 
-    async handleRestoreVersion(versioneId) {
+    async handleRestoreVersion(versioneId, noteId) {
         const messaggio = "Sei sicuro di voler ripristinare questa versione? Il testo attuale verrà archiviato e sostituito.";
-        this.view.showConfirm(messaggio, async () => {
+        this.view.showRestoreConfirm(messaggio, async () => {
             try {
                 const result = await this.model.restoreVersion(versioneId, this.model.currentUser.id);
-                const textarea = document.querySelector('textarea');
-                if (textarea) {
-                    textarea.value = result.testo;
-                }
-                if (typeof this.view.hideHistory === 'function') {
-                    this.view.hideHistory();
-                }
-                this.view.showSuccess("Versione ripristinata correttamente!");                
+                this.view.showSuccess("Versione ripristinata correttamente!");
+                await this.handleViewNote(noteId);
             } catch (e) {
                 this.view.showError("Errore nel ripristino: " + e.message);
             }

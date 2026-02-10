@@ -47,7 +47,6 @@ class AppModel extends EventEmitter{
         return await response.json();
     }
 
-
     async createNote(argomentoId, utenteId, titolo, contenuto) {
         const response = await fetch(`${this.apiBase}/appunto/crea`, {
             method: 'POST',
@@ -173,7 +172,7 @@ class AppModel extends EventEmitter{
 
     async deleteCourse(id) {
         const response = await fetch(`${this.apiBase}/corso/elimina`, {
-            method: 'POST',
+            method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id }),
             credentials: 'include'
@@ -190,7 +189,7 @@ class AppModel extends EventEmitter{
 
     async renameCourse(id, nuovoNome) {
         const response = await fetch(`${this.apiBase}/corso/modifica`, {
-            method: 'POST',
+            method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({nome: nuovoNome, id }),
             credentials: 'include'
@@ -222,7 +221,7 @@ class AppModel extends EventEmitter{
 
     async deleteArgomento(id, corsoId) {
         const response = await fetch(`${this.apiBase}/argomento/elimina`, {
-            method: 'POST',
+            method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id }),
             credentials: 'include'
@@ -237,7 +236,7 @@ class AppModel extends EventEmitter{
 
     async renameArgomento(id, nuovoNome, corsoId) {
         const response = await fetch(`${this.apiBase}/argomento/modifica`, {
-            method: 'POST',
+            method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({nome: nuovoNome, id }),
             credentials: 'include'
@@ -252,24 +251,9 @@ class AppModel extends EventEmitter{
     
     // ----- Appunti
 
-    async createNote(argomentoId, titolo, contenuto) {
-        const response = await fetch(`${this.apiBase}/appunto/crea`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ argomento_id: argomentoId, titolo, contenuto }),
-            credentials: 'include'
-        });
-        
-        if (response.ok) {
-            this.emit('note:updated', argomentoId); 
-            this.view.showSuccess("Nota creata correttamente");
-        }
-        return await response.json();
-    }
-
     async deleteNote(id, argomentoId) {
         const response = await fetch(`${this.apiBase}/appunto/elimina`, {
-            method: 'POST',
+            method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id }),
             credentials: 'include'
@@ -284,7 +268,7 @@ class AppModel extends EventEmitter{
 
     async renameNote(id, nuovoNome, argomentoId) {
         const response = await fetch(`${this.apiBase}/appunto/modifica`, {
-            method: 'POST',
+            method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({nome: nuovoNome, id }),
             credentials: 'include'

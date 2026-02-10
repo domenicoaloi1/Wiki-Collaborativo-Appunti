@@ -14,12 +14,17 @@
 <body>
 
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top">
         <div class="container-fluid">
+            <button class="navbar-toggler d-md-none me-2" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
             <a class="navbar-brand fw-bold" href="#">WIKI UNIPR</a>
-            <div class="d-flex">
-                <button class="btn btn-outline-light me-2" id="btn-login">Login</button>
-                <button class="btn btn-primary" id="btn-register">Registrati</button>
+            
+            <div class="d-flex ms-auto">
+                <button class="btn btn-outline-light btn-sm me-2" id="btn-login">Login</button>
+                <button class="btn btn-primary btn-sm" id="btn-register">Registrati</button>
             </div>
         </div>
     </nav>
@@ -27,7 +32,7 @@
     <div class="container-fluid">
         <div class="row">
 
-            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse border-end vh-100">
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse border-end">
                 <div class="position-sticky pt-3 px-3">
                     <div id="home-button-container" class="mb-3"></div>
                     <div class="mb-4">
@@ -58,8 +63,41 @@
     <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastPlacement" style="z-index: 9999;">
     </div>
     
+    <div class="modal fade" id="markdownGuideModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title"><i class="bi bi-info-circle me-2"></i>Guida Rapida Markdown</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <table class="table table-sm">
+            <thead>
+                <tr>
+                <th>Cosa vuoi fare</th>
+                <th>Cosa scrivere</th>
+                <th>Risultato</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Titolo</td><td><code># Titolo</code></td><td><h1>Titolo</h1></td></tr>
+                <tr><td>Grassetto</td><td><code>**testo**</code></td><td><strong>testo</strong></td></tr>
+                <tr><td>Corsivo</td><td><code>*testo*</code></td><td><em>testo</em></td></tr>
+                <tr><td>Elenco puntato</td><td><code>- elemento</code></td><td><ul><li>elemento</li></ul></td></tr>
+                <tr><td>Tabella</td><td><code>| Titolo |</code></td><td><em>Tabella formattata</em></td></tr>
+                <tr><td>Codice</td><td><code>`codice`</code></td><td><code>codice</code></td></tr>
+                <tr><td>Linea divisoria</td><td><code>---</code></td><td><hr></td></tr>
+            </tbody>
+            </table>
+            <p class="text-muted small">Nota: Le tabelle richiedono una riga di intestazione e una di separazione <code>| --- |</code>.</p>
+        </div>
+        </div>
+    </div>
+    </div>
+
     <script src="js/vendor/jquery-3.6.0.min.js"></script>
     <script src="js/vendor/bootstrap.bundle.min.js"></script>
+    <script src="js/vendor/showdown.min.js"></script>
     <script src="js/Patterns/EventEmitter.js"></script>
     <script src="js/Model/AppModel.js"></script>
     <script src="js/View/BaseView.js"></script>

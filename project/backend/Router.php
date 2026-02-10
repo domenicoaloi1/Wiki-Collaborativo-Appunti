@@ -2,28 +2,50 @@
 // backend/Router.php
 
 class Router {
-    private $routes = [];
+    private $routes;
+    private $dependencies;
 
-    public function add($method, $path, $callback) {
-        $this->routes[] = [
-            'method'   => $method,
-            'path'     => rtrim($path, '/'),
-            'callback' => $callback
-        ];
+    public function __construct($routes, $dependencies) {
+        $this->routes = $routes;
+        $this->dependencies = $dependencies;
     }
 
     public function dispatch() {
         $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-        $uri = rtrim($uri, '/');
+        // $uri = rtrim($uri, '/');
+        $uri = ($uri !== '/') ? rtrim($uri, '/') : '/';
         $method = $_SERVER['REQUEST_METHOD'];
 
-        foreach ($this->routes as $route) {
-            if ($route['method'] === $method && $route['path'] === $uri) {
-                return call_user_func($route['callback']);
-            }
+        // if (!isset($this->routes[$method][$uri])) {
+        //     http_response_code(404);
+        //     echo json_encode(["error" => "Rotta non trovata: " . $uri]);
+        //     return;
+        // }
+        if (!isset($this->routes[$method][$uri])) {
+            http_response_code(404);
+            echo json_encode([
+                "error" => "Rotta non trovata",
+                "method" => $method,
+                "uri" => $uri
+            ]);
+            return;
         }
 
-        http_response_code(404);
-        echo json_encode(["error" => "Rotta non trovata: " . $uri]);
+        $route = $this->routes[$method][$uri];
+        list($controllerName, $action) = explode('@', $route);
+
+        if (class_exists($controllerName)) {
+            $controller = new $controllerName($this->dependencies);
+            
+            if (method_exists($controller, $action)) {
+                return $controller->$action();
+            } else {
+                http_response_code(500);
+                echo json_encode(["error" => "Metodo $action non trovato in $controllerName"]);
+            }
+        } else {
+            http_response_code(500);
+            echo json_encode(["error" => "Classe $controllerName non trovata"]);
+        }
     }
 }

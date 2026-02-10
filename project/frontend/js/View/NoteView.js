@@ -54,45 +54,131 @@ class NoteView extends BaseView {
     }
 
     renderNoteDetail(note, canEdit, onSaveVersion, onShowHistory) {
+        if (!note) {
+            this.mainContent.innerHTML = '<div class="alert alert-danger">Errore: Nota non trovata.</div>';
+            return;
+        }
+
         this.mainContent.innerHTML = '';
         const container = this._createElement('div', 'note-container p-4');
 
-        const title = this._createElement('h2', 'mb-3');
-        title.textContent = note.titolo;
+        const headerContainer = this._createElement('div', 'd-flex justify-content-between align-items-center mb-4');
 
-        // Area di testo per il contenuto
-        const textarea = this._createElement('textarea', 'form-control mb-3', { 
-            rows: 15,
-            placeholder: 'Contenuto dell\'appunto...'
+        const title = this._createElement('h2', 'mb-4');
+        title.textContent = note.titolo || 'Senza Titolo';
+
+
+        if (canEdit) {
+            const btnHelp = this._createElement('button', 'btn btn-outline-info btn-sm');
+            btnHelp.innerHTML = '<i class="bi bi-question-circle me-1"></i> Guida Markdown';
+            btnHelp.setAttribute('data-bs-toggle', 'modal');
+            btnHelp.setAttribute('data-bs-target', '#markdownGuideModal');
+            headerContainer.append(title, btnHelp);
+        } else {
+            headerContainer.appendChild(title);
+        }
+
+        container.appendChild(headerContainer);
+
+        const converter = new showdown.Converter({
+            tables: true,
+            strikethrough: true,
+            ghCodeBlocks: true,
+            simpleLineBreaks: true
         });
-        textarea.value = note.contenuto;
 
-        // LOGICA DI SOLA LETTURA
-        if (!canEdit) {
-            textarea.setAttribute('readonly', 'true');
-            textarea.classList.add('bg-light'); // Grigio chiaro per feedback visivo
+        let textarea;
+        let previewDiv;
+
+        if (canEdit) {
+            const row = this._createElement('div', 'row g-3 mb-4');
+            
+            const colEditor = this._createElement('div', 'col-12 col-md-6');
+            textarea = this._createElement('textarea', 'form-control editor-height', { 
+                placeholder: 'Scrivi in Markdown...',
+                style: 'font-family: monospace; resize: none; overflow-y: auto;'
+            });
+            textarea.value = note.contenuto || '';
+            colEditor.appendChild(textarea);
+
+            const colPreview = this._createElement('div', 'col-12 col-md-6');
+            previewDiv = this._createElement('div', 'markdown-body p-3 border rounded bg-white editor-height', {
+                style: 'overflow-y: auto;'
+            });
+
+            previewDiv.innerHTML = converter.makeHtml(textarea.value);
+            colPreview.appendChild(previewDiv);
+            
+            textarea.addEventListener('scroll', () => {
+                previewDiv.scrollTop = textarea.scrollTop;
+            });
+
+            row.append(colEditor, colPreview);
+            container.appendChild(row);
+
+            textarea.addEventListener('input', () => {
+                previewDiv.innerHTML = converter.makeHtml(textarea.value);
+            });
+
+        } else {
+            previewDiv = this._createElement('div', 'markdown-body p-4 border rounded bg-white shadow-sm mb-4');
+            previewDiv.innerHTML = converter.makeHtml(note.contenuto || '');
+            container.appendChild(previewDiv);
         }
 
         const btnGroup = this._createElement('div', 'd-flex gap-2 mb-4');
 
-        // Mostriamo il tasto salva solo se l'utente può editare
         if (canEdit && onSaveVersion) {
-            const btnSave = this._createElement('button', 'btn btn-success');
-            btnSave.textContent = 'Salva Nuova Versione';
-            btnSave.onclick = () => onSaveVersion(textarea.value);
+            const btnSave = this._createElement('button', 'btn btn-success px-4');
+            btnSave.innerHTML = '<i class="bi bi-save me-2"></i>Salva Nuova Versione';
+            
+            btnSave.onclick = async () => {
+                const nuovoContenuto = textarea.value;
+                
+                btnSave.disabled = true;
+                btnSave.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Salvataggio...';
+                
+                try {
+                    await onSaveVersion(nuovoContenuto);
+                    
+                    btnSave.classList.replace('btn-success', 'btn-outline-success');
+                    btnSave.innerHTML = '<i class="bi bi-check-lg me-2"></i>Salvato!';
+                    
+                    setTimeout(() => {
+                        btnSave.classList.replace('btn-outline-success', 'btn-success');
+                        btnSave.disabled = false;
+                        btnSave.innerHTML = '<i class="bi bi-save me-2"></i>Salva Nuova Versione';
+                    }, 2000);
+                    
+                } catch (error) {
+                    btnSave.disabled = false;
+                    btnSave.classList.replace('btn-success', 'btn-danger');
+                    btnSave.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>Errore';
+                    console.error("Errore durante il salvataggio:", error);
+                }
+            };
             btnGroup.appendChild(btnSave);
+
+            const btnExport = this._createElement('button', 'btn btn-outline-secondary');
+            btnExport.innerHTML = '<i class="bi bi-file-earmark-pdf me-2"></i>Esporta PDF';
+            btnExport.onclick = () => {
+                if (textarea && previewDiv) {
+                    previewDiv.innerHTML = converter.makeHtml(textarea.value);
+                }
+                window.print();
+            };
+            btnGroup.appendChild(btnExport);
         }
         
-        if (canEdit) {
+        if (canEdit && onShowHistory) {
             const btnHistory = this._createElement('button', 'btn btn-outline-primary');
-            btnHistory.textContent = 'Vedi Cronologia';
+            btnHistory.innerHTML = '<i class="bi bi-clock-history me-2"></i>Vedi Cronologia';
             btnHistory.onclick = () => onShowHistory();
             btnGroup.appendChild(btnHistory);
         }
 
-        container.append(title, textarea, btnGroup);
+        container.appendChild(btnGroup);
         
-        // Contenitore per la storia
         const historyContainer = this._createElement('div', 'history-section mt-4', { id: 'history-list' });
         container.appendChild(historyContainer);
 

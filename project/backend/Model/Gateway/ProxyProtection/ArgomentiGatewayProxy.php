@@ -40,6 +40,6 @@ class ArgomentiGatewayProxy implements IArgomentiGateway {
     }
 
     private function unauthorized(): void {
-        throw new Exception("Accesso negato: operazione riservata agli amministratori.");
+        throw new Exception("Accesso negato: l'utente non dispone delle autorizzazioni necessarie per questa operazione.");
     }
 }

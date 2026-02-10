@@ -90,6 +90,11 @@ class NotesGateway extends AbstractGateway implements INotesGateway{
         }
     }
 
+    public function updateLastUserTouchedNote(int $id, int $newUserId): void {
+        $stmt = $this->pdo->prepare("UPDATE appunti SET utente_id = ?, data_creazione = CURRENT_TIMESTAMP WHERE id = ?");
+        $stmt->execute([$newUserId, $id]);
+    }
+
     // RF10
     public function deleteNotes(FilterStrategy $strategy) {
         $fullSql = "";

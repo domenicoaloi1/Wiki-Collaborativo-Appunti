@@ -25,10 +25,10 @@ Utilizzare le seguenti credenziali per testare le diverse funzionalità del sist
 
 | Ruolo | Email | Password |
 | --- | --- | --- |
-| Amministratore | admin@unipr.it | admin |
-| Studente | studente_test1@studenti.unipr.it | StudenteProva1 |
-| Studente | studente_test2@studenti.unipr.it | StudenteProva2 |
-| Studente | studente_test3@studenti.unipr.it | StudenteProva3 |
+| Amministratore | admin@unipr.it | Vector! |
+| Studente | studente_test1@studenti.unipr.it | Prova1 |
+| Studente | studente_test2@studenti.unipr.it | Prova2 |
+| Studente | studente_test3@studenti.unipr.it | Prova3 |
 
 ## Gestione container
 

@@ -48,3 +48,207 @@ body {
 #dynamicConfirmModal .modal-header {
     background: linear-gradient(45deg, #dc3545, #ff4d5a) !important;
 }
+
+/* Il contenitore della nota */
+.markdown-body {
+    line-height: 1.6;
+    word-wrap: break-word;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+/* Altezza fissa per entrambi i box per mantenerli allineati */
+.editor-height {
+    height: 70vh; /* Occupa il 70% dell'altezza dello schermo */
+    min-height: 500px;
+    margin-bottom: 0; /* Rimuove margini che potrebbero sfasare l'allineamento */
+}
+
+/* Scrollbar personalizzata per la preview (opzionale, per estetica) */
+.markdown-body::-webkit-scrollbar {
+    width: 8px;
+}
+.markdown-body::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+
+/* Titoli con linea sotto e spaziatura */
+.markdown-body h1, .markdown-body h2 {
+    padding-bottom: 0.3em;
+    border-bottom: 1px solid #eaecef;
+    margin-top: 24px;
+    margin-bottom: 16px;
+    font-weight: 600;
+}
+
+/* Tabelle professionali */
+.markdown-body table {
+    width: 100%;
+    margin-bottom: 1rem;
+    border-collapse: collapse;
+}
+
+.markdown-body table th, .markdown-body table td {
+    padding: 8px 13px;
+    border: 1px solid #dfe2e5;
+}
+
+.markdown-body table tr:nth-child(2n) {
+    background-color: #f6f8fa; /* Effetto zebra */
+}
+
+/* Blocchi di codice (quello che nel tuo screen non ha funzionato) */
+.markdown-body pre {
+    padding: 16px;
+    overflow: auto;
+    font-size: 85%;
+    line-height: 1.45;
+    background-color: #f6f8fa;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+}
+
+.markdown-body code {
+    font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    background-color: rgba(27,31,35,0.05);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+}
+
+/* Citazioni */
+.markdown-body blockquote {
+    padding: 0 1em;
+    color: #6a737d;
+    border-left: 0.25em solid #dfe2e5;
+    margin: 0 0 16px 0;
+}
+
+/* Rendi l'editor e la preview un blocco unico */
+.note-container .row {
+    background: #f8f9fa;
+    border-radius: 8px;
+    overflow: hidden; /* Taglia gli angoli del bordo */
+    border: 1px solid #dee2e6;
+}
+
+/* Rimuovi i bordi interni per non raddoppiarli */
+.note-container textarea.form-control {
+    border: none;
+    border-right: 1px solid #dee2e6;
+    border-radius: 0;
+    background-color: #ffffff;
+    padding: 20px;
+}
+
+.note-container .markdown-body {
+    border: none !important; /* Sovrascriviamo il border-rounded di Bootstrap */
+    border-radius: 0 !important;
+    background-color: #ffffff;
+    padding: 20px;
+}
+
+/* Effetto focus sull'editor */
+.note-container textarea.form-control:focus {
+    box-shadow: none;
+    background-color: #fff;
+}
+
+/* Forza l'allineamento perfetto delle due colonne */
+.note-container .row.g-3 {
+    display: flex;
+    align-items: stretch; /* Fa sì che le due colonne siano alte uguali */
+}
+
+@media print {
+    /* Nascondi tutto ciò che non serve */
+    nav, .sidebar, .btn-group, .btn, .history-section, h2.mb-3, textarea {
+        display: none !important;
+    }
+
+    /* Rendi l'area della nota a tutta pagina */
+    body, .main-content, .container, .note-container {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        background-color: white !important;
+    }
+
+    /* Forza la visualizzazione solo della preview */
+    .markdown-body {
+        border: none !important;
+        padding: 0 !important;
+        width: 100% !important;
+        overflow: visible !important;
+        height: auto !important;
+    }
+    
+    /* Evita che le tabelle vengano tagliate a metà tra le pagine */
+    table, pre, blockquote {
+        page-break-inside: avoid;
+    }
+}
+
+
+
+/* --- GESTIONE SIDEBAR MOBILE --- */
+@media (max-width: 767.98px) {
+    #sidebar {
+        position: fixed;
+        top: 56px; /* Altezza standard navbar bootstrap */
+        left: 0;
+        z-index: 1000; /* Sopra al contenuto principale */
+        height: calc(100vh - 56px);
+        width: 100%; /* Oppure 280px se la vuoi parziale */
+        background-color: white !important;
+        box-shadow: 5px 0 10px rgba(0,0,0,0.1);
+    }
+    
+    /* Quando la sidebar è aperta su mobile, impediamo lo scroll del corpo */
+    body.sidebar-open {
+        overflow: hidden;
+    }
+}
+
+/* --- GESTIONE DESKTOP --- */
+@media (min-width: 768px) {
+    #sidebar {
+        height: calc(100vh - 56px);
+        position: sticky;
+        top: 56px;
+    }
+}
+
+/* Assicurati che il main-content non venga coperto su desktop */
+main {
+    min-height: calc(100vh - 56px);
+}
+
+
+/* Impedisce alla navbar di espandersi in altezza */
+.navbar {
+    min-height: 56px;
+    height: 56px;
+}
+
+.navbar .container-fluid {
+    flex-wrap: nowrap; /* Impedisce agli elementi di andare a capo */
+}
+
+/* Gestione testo utente per non coprire nulla */
+.navbar-text {
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+@media (max-width: 767.98px) {
+    /* Su mobile nascondiamo il testo dell'utente e lasciamo solo l'icona 
+       se lo spazio è davvero poco, per salvare il tasto home */
+    .navbar-text {
+        max-width: 80px !important;
+    }
+    
+    /* Assicurati che il pulsante home nel sidebar non sia troppo attaccato al top */
+    #home-button-container {
+        margin-top: 10px;
+    }
+}

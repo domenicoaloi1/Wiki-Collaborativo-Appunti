@@ -6,4 +6,5 @@ interface INotesGateway {
     public function updateNoteContent(int $id, string $newContent);
     public function updateNoteTitle(int $id, string $nome);
     public function deleteNotes(FilterStrategy $strategy);
+    public function updateLastUserTouchedNote(int $id, int $newUserId);
 }
