@@ -23,15 +23,23 @@ return [
         '/appunto/versione/ripristina'  => 'VersionController@restore',
         
         '/corso/crea'                   => 'CourseController@create',
-        '/corso/modifica'               => 'CourseController@update',
-        '/corso/elimina'                => 'CourseController@delete',
         
         '/argomento/crea'               => 'ArgumentController@create',
-        '/argomento/modifica'           => 'ArgumentController@update',
-        '/argomento/elimina'            => 'ArgumentController@delete',
 
         '/appunto/crea'                 => 'NoteController@create',
+    ],
+    'PUT' => [
+        '/corso/modifica'               => 'CourseController@update',
+
+        '/argomento/modifica'           => 'ArgumentController@update',
+
         '/appunto/modifica'             => 'NoteController@update',
+    ],
+    'DELETE' => [
         '/appunto/elimina'              => 'NoteController@delete',
+
+        '/argomento/elimina'            => 'ArgumentController@delete',
+        
+        '/corso/elimina'                => 'CourseController@delete',
     ]
 ];

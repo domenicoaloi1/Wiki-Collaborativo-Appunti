@@ -12,12 +12,22 @@ class Router {
 
     public function dispatch() {
         $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-        $uri = rtrim($uri, '/');
+        // $uri = rtrim($uri, '/');
+        $uri = ($uri !== '/') ? rtrim($uri, '/') : '/';
         $method = $_SERVER['REQUEST_METHOD'];
 
+        // if (!isset($this->routes[$method][$uri])) {
+        //     http_response_code(404);
+        //     echo json_encode(["error" => "Rotta non trovata: " . $uri]);
+        //     return;
+        // }
         if (!isset($this->routes[$method][$uri])) {
             http_response_code(404);
-            echo json_encode(["error" => "Rotta non trovata: " . $uri]);
+            echo json_encode([
+                "error" => "Rotta non trovata",
+                "method" => $method,
+                "uri" => $uri
+            ]);
             return;
         }
 

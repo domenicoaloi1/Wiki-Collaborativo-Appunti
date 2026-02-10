@@ -37,7 +37,7 @@ class ArgumentController {
         }
     }
 
-    // Corrisponde a POST /argomento/modifica
+    // Corrisponde a PUT /argomento/modifica
     public function update() {
         $data = json_decode(file_get_contents('php://input'), true);
         try {
@@ -49,7 +49,7 @@ class ArgumentController {
         }
     }
 
-    // Corrisponde a POST /argomento/elimina
+    // Corrisponde a DELETE /argomento/elimina
     public function delete() {
         $data = json_decode(file_get_contents('php://input'), true);
         try {

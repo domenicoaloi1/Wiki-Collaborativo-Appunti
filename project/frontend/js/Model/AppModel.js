@@ -172,7 +172,7 @@ class AppModel extends EventEmitter{
 
     async deleteCourse(id) {
         const response = await fetch(`${this.apiBase}/corso/elimina`, {
-            method: 'POST',
+            method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id }),
             credentials: 'include'
@@ -189,7 +189,7 @@ class AppModel extends EventEmitter{
 
     async renameCourse(id, nuovoNome) {
         const response = await fetch(`${this.apiBase}/corso/modifica`, {
-            method: 'POST',
+            method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({nome: nuovoNome, id }),
             credentials: 'include'
@@ -221,7 +221,7 @@ class AppModel extends EventEmitter{
 
     async deleteArgomento(id, corsoId) {
         const response = await fetch(`${this.apiBase}/argomento/elimina`, {
-            method: 'POST',
+            method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id }),
             credentials: 'include'
@@ -236,7 +236,7 @@ class AppModel extends EventEmitter{
 
     async renameArgomento(id, nuovoNome, corsoId) {
         const response = await fetch(`${this.apiBase}/argomento/modifica`, {
-            method: 'POST',
+            method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({nome: nuovoNome, id }),
             credentials: 'include'
@@ -253,7 +253,7 @@ class AppModel extends EventEmitter{
 
     async deleteNote(id, argomentoId) {
         const response = await fetch(`${this.apiBase}/appunto/elimina`, {
-            method: 'POST',
+            method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id }),
             credentials: 'include'
@@ -268,7 +268,7 @@ class AppModel extends EventEmitter{
 
     async renameNote(id, nuovoNome, argomentoId) {
         const response = await fetch(`${this.apiBase}/appunto/modifica`, {
-            method: 'POST',
+            method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({nome: nuovoNome, id }),
             credentials: 'include'

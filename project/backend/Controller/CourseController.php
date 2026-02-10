@@ -29,7 +29,7 @@ class CourseController {
         }
     }
 
-    // Corrisponde a POST /corso/modifica
+    // Corrisponde a PUT /corso/modifica
     public function update() {
         $data = json_decode(file_get_contents('php://input'), true);
         try {
@@ -41,7 +41,7 @@ class CourseController {
         }
     }
 
-    // Corrisponde a POST /corso/elimina
+    // Corrisponde a DELETE /corso/elimina
     public function delete() {
         $data = json_decode(file_get_contents('php://input'), true);
         try {

@@ -89,7 +89,7 @@ class NoteController {
         }
     }
 
-    // Corrisponde a: POST /appunto/modifica
+    // Corrisponde a: PUT /appunto/modifica
     public function update() {
         $data = json_decode(file_get_contents('php://input'), true);
         
@@ -108,7 +108,7 @@ class NoteController {
         }
     }
 
-    // Corrisponde a: POST /appunto/elimina
+    // Corrisponde a: DELETE /appunto/elimina
     public function delete() {
         $data = json_decode(file_get_contents('php://input'), true);
         
