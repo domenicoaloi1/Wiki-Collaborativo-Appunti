@@ -1,0 +1,56 @@
+\begin{verbatim}
+@startuml
+
+skinparam style strictuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+title Design Pattern: MVP (Passive View)
+
+class Model {
+  + data
+  + businessLogic() : void
+}
+
+interface IView <<interface>> {
+  + render(data) : void
+  + bindEvents(handler : Function) : void
+}
+
+class View {
+  + render(data) : void
+  + bindEvents(handler : Function) : void
+}
+
+class Presenter {
+  - model : Model
+  - view : IView
+  + handleEvent() : void
+}
+
+' --- RELAZIONI ---
+
+' Il Presenter coordina entrambi
+Presenter --> Model
+Presenter --> IView
+
+' La View implementa l'interfaccia
+IView <|.. View : «realize»
+
+' La View notifica il Presenter (spesso tramite callback)
+View ..> Presenter
+
+note right of View
+ **Passive View**: la View non conosce il Model.
+ Ogni aggiornamento passa dal Presenter.
+end note
+
+note top of IView
+ L'interfaccia permette di testare 
+ il Presenter in isolamento (mocking).
+end note
+
+@enduml
+\end{verbatim}

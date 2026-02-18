@@ -1,0 +1,38 @@
+\begin{verbatim}
+@startuml
+skinparam style strictuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam linetype ortho
+
+title Diagramma delle attività: Visualizzazione Appunto (RF5)
+
+|AppPresenter|
+start
+:handleViewNote(id);
+
+|AppModel|
+:fetchNoteDetail(id);
+note right: Chiamata asincrona (Fetch API)\nverso /appunto?id=...
+
+|Backend (Gateway)|
+:Query DB (IdFilter);
+:Recupera file_path;
+
+|File System / DB|
+if (file_exists()?) then ([si])
+    :Legge contenuto\n(file_get_contents);
+else ([no])
+    :Genera messaggio errore\n(File non trovato);
+endif
+
+|Backend (Gateway)|
+:Integrazione Dati;
+note left: Unione metadati DB\ne contenuto file
+:Ritorna JSON Dettaglio;
+
+|AppPresenter|
+:renderNoteDetail(note);
+stop
+@enduml
+\end{verbatim}

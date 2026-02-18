@@ -1,0 +1,53 @@
+\begin{verbatim}
+@startuml
+
+skinparam style strictuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+title Design Pattern: Protection Proxy
+
+class Client {
+}
+
+interface Subject <<interface>> {
+  + {abstract} request() : void
+}
+
+class RealSubject {
+  + request() : void
+}
+
+class Proxy {
+  - realSubject : RealSubject
+  + request() : void
+  - checkAccess() : Boolean
+}
+
+' --- RELAZIONI ---
+
+' Realizzazione dell'interfaccia
+Subject <|.. RealSubject : <<realize>>
+Subject <|.. Proxy : <<realize>>
+
+' Associazione tra Proxy e RealSubject
+Proxy o--> RealSubject : - realSubject
+
+' Dipendenza del Client verso l'astrazione
+Client ..> Subject : <<use>>
+
+note left of Proxy
+ **request()** {
+  if (checkAccess()) {
+   realSubject.request()
+  } else {
+   throw AccessDeniedException
+  }
+ }
+end note
+
+@enduml
+
+\end{verbatim}

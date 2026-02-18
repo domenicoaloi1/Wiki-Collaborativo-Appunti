@@ -1,0 +1,55 @@
+
+
+
+
+\begin{verbatim}
+@startuml
+skinparam style strictuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+title Diagramma delle classi BE Sottosistema: Gestione Stato e Cronologia
+
+' --- CLASSES ---
+
+class Note {
+    - id : Integer
+    - testo : String
+    - utenteId : Integer
+    + setContent(id : Integer, testo : String, utenteId : Integer) : void
+    + getId() : Integer
+    + saveToMemento() : NoteMemento
+    + restoreFromMemento(m : NoteMemento) : void
+}
+
+class NoteMemento {
+    - id : Integer
+    - testo : String
+    - utenteId : Integer
+    + NoteMemento(id : Integer, testo : String, utenteId : Integer)
+    ~ getState() : [*]
+}
+
+class VersionsGateway {
+    + saveVersion(m : NoteMemento, corsoId : Integer) : void
+    + getMemento(strategy : FilterStrategy) : NoteMemento
+}
+
+' --- RELATIONS ---
+
+' L'Originator crea il Memento (Dependency <<create>>)
+Note ..> NoteMemento : <<create>>
+
+' Il Caretaker aggrega i Memento per la persistenza
+VersionsGateway o--> NoteMemento : - history
+
+note right of NoteMemento
+  Rispetta l'Information Hiding:
+  attributi privati e interfaccia
+  di recupero stato ristretta.
+end note
+
+@enduml
+\end{verbatim}

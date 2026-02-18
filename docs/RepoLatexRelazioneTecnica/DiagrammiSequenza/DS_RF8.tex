@@ -1,0 +1,53 @@
+\begin{verbatim}
+@startuml
+skinparam style strictuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+
+title Diagramma di sequenza: Salvataggio Nuova Versione (parte di RF8)
+
+' --- DICHIARAZIONE PARTECIPANTI ---
+
+actor " : User" as ST <<actor>>
+participant "vc : VersionController" as VC
+participant "n : Note" as N <<originator>>
+participant "m : NoteMemento" as M <<memento>>
+participant "vg : VersionsGateway" as VG <<caretaker>>
+participant "pdo : PDO" as PDO
+
+
+    ST -> VC : save(noteId, text)
+    activate ST
+    activate VC
+        
+        VC -> VC : beginTransaction()
+        
+        VC -> N : setContent(id, text, uId)
+        activate N
+        return
+        
+        note over N, M : L'Originator crea il Memento
+        VC -> N : saveToMemento()
+        activate N
+            N -> M ** : create(id, text, uId)
+        return m : NoteMemento
+        
+        VC -> VG : saveVersion(m, corsoId)
+        activate VG
+            note right of VG : Interfaccia "stretta" per la persistenza
+            VG -> M : getState()
+            activate M
+            return state_array
+            
+            VG -> PDO : prepare/execute(INSERT)
+            activate PDO
+            return
+        return
+        
+        VC -> VC : commit()
+    return JSON success
+    deactivate ST
+
+@enduml
+\end{verbatim}

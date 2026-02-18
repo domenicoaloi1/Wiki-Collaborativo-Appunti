@@ -1,0 +1,85 @@
+\section{Modellazione della Persistenza e Schema dei Dati}
+
+La progettazione dello strato dei dati è stata formalizzata mediante un diagramma delle classi basato sullo standard \textbf{UML 2.5.1}, derivato rigorosamente dalle specifiche SQL fornite \cite{1287}. In conformità al metamodello, le tabelle sono state rappresentate come \guillemotleft\texttt{entity}\guillemotright\ dove ogni attributo riflette il tipo di dato e i vincoli di unicità definiti nel \textit{Data Definition Language} (DDL) \cite{1287, 1288}.
+
+Sotto il profilo strutturale, le relazioni di dipendenza vitale sono state modellate tramite \textbf{Composition} (diamante pieno); tale scelta riflette l'integrità referenziale \texttt{ON DELETE CASCADE} tra le entità \texttt{corsi}-\texttt{argomenti}, \texttt{argomenti}-\texttt{appunti} e \texttt{appunti}-\texttt{versioni}, indicando che l'esistenza dei componenti è subordinata a quella dell'aggregato primario \cite{437, 443, 1437, 1354}. Al contrario, il legame tra \texttt{utenti} e le risorse (\texttt{appunti}, \texttt{versioni}) è formalizzato come un'associazione semplice con molteplicità \texttt{0..1}, in coerenza con la clausola \texttt{SET NULL} che ne permette l'esistenza anche in caso di rimozione dell'attore autore \cite{1289, 1290}. 
+
+In linea con il rigore normativo, la chiave primaria è contrassegnata dalla proprietà \texttt{\{id\}} \cite{1438, 1420}, mentre i campi con restrizioni di unicità, come \texttt{email} e \texttt{nome} (corso), sono stati esplicitati tramite il vincolo \texttt{\{unique\}} \cite{1420, 1378}. L'estensione semantica per la gestione del File System è stata integrata mediante lo stereotipo informativo \guillemotleft\texttt{path}\guillemotright\ per i campi \texttt{file\_path} e \texttt{testo\_percorso}, i quali non risiedono direttamente nel database relazionale ma puntano all'archiviazione fisica dei file Markdown \cite{1289, 1761}.
+
+
+\begin{verbatim}
+@startuml
+skinparam style strictuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+title Schema dei Dati: Wiki Collaborativo (UML 2.5.1)
+
+' --- ENUMERATIONS ---
+
+enum Ruolo <<enumeration>> {
+    studente
+    amministratore
+}
+
+' --- ENTITIES ---
+
+class utenti <<entity>> {
+    + id : Integer {id}
+    + email : String {unique}
+    + password : String
+    + ruolo : Ruolo
+    + data_registrazione : Timestamp
+}
+
+class corsi <<entity>> {
+    + id : Integer {id}
+    + nome : String {unique}
+}
+
+class argomenti <<entity>> {
+    + id : Integer {id}
+    + nome : String
+    + corso_id : Integer «FK»
+}
+
+class appunti <<entity>> {
+    + id : Integer {id}
+    + titolo : String
+    + argomento_id : Integer «FK»
+    + utente_id : Integer «FK»
+    + file_path : String «path»
+    + data_creazione : Timestamp
+}
+
+class versioni <<entity>> {
+    + id : Integer {id}
+    + appunto_id : Integer «FK»
+    + utente_id : Integer «FK»
+    + file_path : String «path»
+    + data_modifica : Timestamp
+}
+
+' --- RELATIONS ---
+
+' Un corso possiede più argomenti (CASCADE)
+corsi "1" *-- "1..*" argomenti : contiene
+
+' Un argomento possiede più appunti (CASCADE)
+argomenti "1" *-- "*" appunti : categorizza
+
+' Un utente può aver creato molti appunti (SET NULL)
+utenti "0..1" -- "*" appunti : autore
+
+' Un appunto ha una cronologia di versioni (CASCADE)
+appunti "1" *-- "1..*" versioni : cronologia
+
+' Una versione è legata all'utente che l'ha creata (SET NULL)
+utenti "0..1" -- "*" versioni : editore
+
+@enduml
+
+
+\end{verbatim}

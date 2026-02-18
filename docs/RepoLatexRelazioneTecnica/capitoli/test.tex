@@ -1,0 +1,63 @@
+\chapter{Piano di Test}
+
+\section{Introduzione alla Validazione}
+\noindent Il presente Piano di Test definisce le procedure necessarie per verificare che il sistema \textit{Wiki Collaborativo} sia conforme alle specifiche e soddisfi i bisogni reali degli utenti (\textit{Verifica \& Validazione}). La strategia adottata si basa sul \textbf{black-box testing}, in cui i casi di test sono derivati direttamente dai requisiti funzionali (RF) e non funzionali (RNF), testando il sistema tramite input selezionati per coprire sia scenari di successo che condizioni di errore.
+
+\section{Casi di Test e Tracciabilità}
+\noindent Ogni test case è progettato per garantire la \textbf{tracciabilità} verso il relativo requisito, assicurando che ogni funzionalità sia verificabile e correttamente implementata.
+
+\begingroup
+\renewcommand{\arraystretch}{1.5}
+\small
+% L'opzione [c] assicura il centraggio rispetto ai margini della pagina
+\begin{longtable}[c]{|p{0.11\textwidth}|p{0.18\textwidth}|p{0.29\textwidth}|p{0.29\textwidth}|}
+    
+    % --- Intestazione iniziale (solo prima pagina) ---
+    \hline
+    \textbf{ID Test} & \textbf{Requisito} & \textbf{Input / Scenario} & \textbf{Risultato Atteso} \\ \hline
+    \endfirsthead
+
+    % --- Intestazione per le pagine successive ---
+    \hline
+    \multicolumn{4}{|c|}{{\footnotesize\itshape Continua dalla pagina precedente}} \\ \hline
+    \textbf{ID Test} & \textbf{Requisito} & \textbf{Input / Scenario} & \textbf{Risultato Atteso} \\ \hline
+    \endhead
+
+    % --- Piè di pagina per le pagine intermedie ---
+    \hline
+    \multicolumn{4}{|r|}{{\footnotesize\itshape Continua nella prossima pagina}} \\ \hline
+    \endfoot
+
+    % --- Piè di pagina finale ---
+    \hline
+    \endlastfoot
+
+    % --- Corpo della tabella (testo invariato) ---
+    \texttt{T1} & RF1 & Inserimento di dati validi per un nuovo utente. & Status 200 (Success), nuovo utente generato correttamente. \\ \hline
+    \texttt{T2} & RF1 & Registrazione con una email già presente nel database. & Status 409 (Conflict), messaggio "Email già registrata". \\ \hline
+    \texttt{T3} & RF2 & Inserimento di password errata durante il login. & Status 401 (Unauthorized), accesso negato. \\ \hline
+    \texttt{T4} & RF2 & Inserimento di password corretta durante il login. & Status 200 (Success), accesso autorizzato. \\ \hline
+    \texttt{T5} & RF6 & Accesso alla pagina di un argomento come utente non autenticato (Visitatore). & Il pulsante "+ Crea Nuovo Appunto" non è presente nel DOM. \\ \hline
+    \texttt{T6} & RF6 \& RNF4 & Invio manuale di una richiesta POST all'endpoint /appunto/crea senza una sessione valida. & Status 403 (Forbidden), intercettazione del \textit{Protection Proxy}. \\ \hline
+    \texttt{T7} & RF10 \& RNF4 & Accesso con ruolo \texttt{studente} e tentativo di invio manuale di una richiesta DELETE all'endpoint \texttt{/corso/elimina}. & Status 403 (Forbidden), operazione negata dal Proxy. \\ \hline
+    \texttt{T8} & RNF4 & \textbf{Ispezione persistenza}: Verifica del record utente nel DB dopo la registrazione. & Password memorizzate esclusivamente come hash \texttt{sha256}. \\ \hline
+    \texttt{T9} & RF9 & Ricerca del titolo di un appunto con una stringa inferiore a 2 caratteri. & La ricerca non viene avviata dal frontend (ottimizzazione). \\ \hline
+    \texttt{T10} & RF7 & Modifica di un appunto esistente da parte di uno studente autenticato. & Aggiornamento del file \texttt{.md} e creazione di un record in \texttt{versioni}. \\ \hline
+    \texttt{T11} & RF10 \& RNF4 & Eliminazione di un argomento da parte di un utente con ruolo \texttt{amministratore}. & Status 200 (Success), pulizia tramite \textit{CascadeService}. \\ \hline
+    \texttt{T12} & RF3 \& RF4 & Navigazione tra i corsi e argomenti. & Visualizzazione corretta della gerarchia nel frontend. \\ \hline
+    \texttt{T13} & RF5  & Apertura di un appunto esistente. & Rendering HTML corretto da sorgente Markdown; metadati coerenti con il DB. \\ \hline
+    \texttt{T14} & RF8  & Visualizzazione delle versioni. & Lista mostrata con timestamp e autore; anteprima disponibile nel modale. \\ \hline
+    \texttt{T15} & RF8  & Ripristino di una versione. & Promozione della versione a corrente; ricaricamento dell'appunto aggiornato. \\ \hline
+    \texttt{T16} & RF8  & Visualizzazione cronologia vuota. & Messaggio: "Nessuna versione precedente disponibile." \\ \hline
+    \texttt{T17} & RF9  & Ricerca di un titolo esistente con stringa valida (es. "Meccanica"). & Restituzione dell'array JSON contenente i match corrispondenti. \\ \hline
+    \texttt{T18} & RF2  & Esecuzione Logout. & Distruzione del token/sessione; reindirizzamento alla vista ospite. \\ \hline
+    
+    \caption{Tabella dei Casi di Test: Scenari di Validazione}
+    \label{tab:test_plan}
+\end{longtable}
+\endgroup
+
+
+
+\section{Considerazioni sulla Robustezza}
+\noindent Il sistema è stato testato per gestire le anomalie tramite la generazione di eccezioni nello strato dei \textit{Gateway} e dei \textit{Proxy}. In particolare, l'uso di \textbf{prepared statements} SQL garantisce la robustezza contro attacchi di \textit{SQL Injection}.

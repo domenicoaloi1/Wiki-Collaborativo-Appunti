@@ -1,0 +1,116 @@
+\chapter{Requisiti}
+
+\section{Requisiti Funzionali (RF)}
+
+\begin{enumerate}[label=\textbf{RF\arabic*}, widest=RF10, leftmargin=*, align=left]
+    \item \textbf{Registrazione utente}
+        \begin{itemize}[nosep, leftmargin=0cm]
+            \item L'utente può creare un account fornendo email e password.
+            \item Non è richiesto un sistema di validazione dell'email.
+        \end{itemize}
+
+    \item \textbf{Login/Logout}
+        \begin{itemize}[nosep, leftmargin=0cm]
+            \item L'utente può accedere al sistema tramite credenziali e terminare la sessione (logout).
+        \end{itemize}
+
+    \item \textbf{Visualizzazione corsi}
+        \begin{itemize}[nosep, leftmargin=0cm]
+            \item Qualsiasi utente (autenticato o visitatore) può visualizzare l'elenco dei corsi disponibili.
+        \end{itemize}
+
+    \item \textbf{Visualizzazione argomenti di un corso}
+        \begin{itemize}[nosep, leftmargin=0cm]
+            \item Ogni corso presenta una lista di argomenti.
+            \item L'utente può navigare agevolmente tra i corsi e i relativi argomenti.
+        \end{itemize}
+
+    \item \textbf{Visualizzazione degli appunti}
+        \begin{itemize}[nosep, leftmargin=0cm]
+            \item L'utente può visualizzare gli appunti associati a un argomento.
+            \item Ogni appunto è leggibile; il contenuto è visualizzato in formato HTML renderizzato (da sorgente Markdown o testo semplice).
+        \end{itemize}
+
+    \item \textbf{Creazione appunti}
+        \begin{itemize}[nosep, leftmargin=0cm]
+            \item Gli utenti autenticati possono creare nuovi appunti.
+            \item Inserimento obbligatorio del titolo.
+            \item Ogni appunto fa riferimento ad un solo corso ed un solo argomento.
+        \end{itemize}
+
+    \item \textbf{Modifica appunti}
+        \begin{itemize}[nosep, leftmargin=0cm]
+            \item Gli utenti autenticati hanno il permesso di modificare gli appunti esistenti.
+            \item Ogni operazione di modifica genera automaticamente una nuova versione dell'appunto.
+        \end{itemize}
+
+    \item \textbf{Cronologia delle versioni}
+        \begin{itemize}[nosep, leftmargin=0cm]
+            \item Visualizzazione dell'elenco delle versioni precedenti per ogni appunto (inclusi timestamp e autore).
+            \item Possibilità di consultare una versione specifica del passato.
+            \item Funzionalità di ripristino: una versione precedente può essere promossa a versione attuale.
+        \end{itemize}
+
+    \item \textbf{Ricerca}
+        \begin{itemize}[nosep, leftmargin=0cm]
+            \item Sistema di ricerca per individuare appunti tramite il titolo.
+        \end{itemize}
+
+    \item \textbf{Gestione corsi, argomenti e appunti}
+        \begin{itemize}[nosep, leftmargin=0cm]
+            \item Gli utenti con privilegi di amministratore possono creare, modificare o eliminare corsi, argomenti. 
+            \item Gli appunti sono eliminabili solo dall'amministratore.
+        \end{itemize}
+\end{enumerate}
+
+\section{Requisiti Non Funzionali (RNF)}
+
+\begin{enumerate}[label=\textbf{RNF\arabic*}, widest=RNF8, leftmargin=*, align=left]
+    \item \textbf{Architettura}
+        \begin{itemize}[nosep, leftmargin=0cm]
+            \item L'applicazione deve essere sviluppata seguendo il pattern architetturale Model–View–Presenter (MVP).
+            \item Frontend e Backend devono essere completamente disaccoppiati e comunicare esclusivamente tramite API.
+        \end{itemize}
+
+    \item \textbf{Tecnologie}
+        \begin{itemize}[nosep, leftmargin=0cm]
+            \item Frontend: utilizzo di tecnologie standard (HTML5, CSS3, JavaScript). È consentito l'uso di Bootstrap o jQuery.
+            \item Backend: sviluppo in PHP puro (senza l'ausilio di framework come Laravel o Symfony).
+            \item Interfaccia API: implementazione di servizi RESTful per le operazioni CRUD.
+            \item Divieto di Server-Side Rendering (SSR): il backend non deve generare codice HTML.
+        \end{itemize}
+
+    \item \textbf{Indipendenza Frontend/Backend}
+        \begin{itemize}[nosep, leftmargin=0cm]
+            \item Il frontend deve essere progettato per poter interagire con backend alternativi (es. Java, Go).
+            \item Il backend deve poter servire client differenti, inclusi dispositivi mobile o applicazioni desktop.
+        \end{itemize}
+
+    \item \textbf{Sicurezza}
+        \begin{itemize}[nosep, leftmargin=0cm]
+            \item Tutte le API che comportano la modifica dei dati devono essere protette tramite token di autenticazione o gestione della sessione.
+            \item Le password devono essere memorizzate nel database esclusivamente tramite algoritmi di hashing sicuri.
+            \item \textbf{Nota sulla produzione:} Sebbene il prototipo operi in locale su HTTP, per la messa in produzione è previsto l'uso del protocollo HTTPS per garantire la cifratura dei dati e la sicurezza delle sessioni
+        \end{itemize}
+
+    \item \textbf{Usabilità}
+        \begin{itemize}[nosep, leftmargin=0cm]
+            \item L'interfaccia utente deve seguire un design semplice, pulito e minimalista.
+            \item Il sistema deve essere \textit{responsive}, garantendo il supporto ai dispositivi mobili.
+        \end{itemize}
+
+    \item \textbf{Prestazioni}
+        \begin{itemize}[nosep, leftmargin=0cm]
+            \item Il tempo di risposta del sistema per le tutte operazioni in condizioni di carico standard deve essere inferiore ai 5 secondi.
+        \end{itemize}
+
+    \item \textbf{Documentazione}
+        \begin{itemize}[nosep, leftmargin=0cm]
+            \item Il repository GitHub del progetto deve includere: requisiti, diagrammi UML, guida all'installazione e manuale utente sintetico.
+        \end{itemize}
+
+    \item \textbf{Versionamento}
+        \begin{itemize}[nosep, leftmargin=0cm]
+            \item Corretto utilizzo di Git e GitHub: gestione dei branch, commit regolari e descrittivi.
+        \end{itemize}
+\end{enumerate}

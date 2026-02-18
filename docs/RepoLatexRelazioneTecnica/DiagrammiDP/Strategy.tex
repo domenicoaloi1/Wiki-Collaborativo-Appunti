@@ -1,0 +1,49 @@
+\begin{verbatim}
+@startuml
+
+' Configurazione per il rigore standard UML 2.5.1
+
+skinparam style strictuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+title Design Pattern: Strategy
+
+class Context {
+  - strategy : Strategy
+  + setStrategy(s : Strategy) : void
+  + contextInterface() : void
+}
+
+interface Strategy <<interface>> {
+  + {abstract} algorithmInterface() : void
+}
+
+class ConcreteStrategyA {
+  + algorithmInterface() : void
+}
+
+class ConcreteStrategyB {
+  + algorithmInterface() : void
+}
+
+' Relazione di Aggregazione (Shared Aggregation)
+
+' Indica che il Context "ha" una strategia ma non ne controlla il ciclo di vita esclusivo
+Context o-- Strategy : - strategy
+
+' Relazione di Realizzazione (Interface Realization)
+Strategy <|.. ConcreteStrategyA : <<realize>>
+Strategy <|.. ConcreteStrategyB : <<realize>>
+
+note bottom of Context
+ Il Context delega l'esecuzione 
+ dell'algoritmo alla strategia 
+ correntemente configurata.
+end note
+
+@enduml
+
+\end{verbatim}

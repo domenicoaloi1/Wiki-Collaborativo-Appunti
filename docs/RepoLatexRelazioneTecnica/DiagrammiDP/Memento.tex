@@ -1,0 +1,45 @@
+\begin{verbatim}
+@startuml
+
+' Configurazione per il rigore standard UML 2.5.1
+skinparam style strictuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+title Design Pattern: Memento
+
+class Originator {
+  - state
+  + createMemento() : Memento
+  + setMemento(m : Memento) : void
+}
+
+note left of Originator : Crea il memento con lo stato attuale\ne lo usa per il ripristino.
+
+class Memento {
+  - state
+  ~ Memento(s)
+  ~ getState()
+}
+
+note right of Memento : Mantiene lo stato dell'Originator.\nL'accesso ai membri è limitato (package/friend).
+
+class Caretaker {
+  - history : Memento[*]
+}
+
+note top of Caretaker : Responsabile della custodia dei memento,\nma non ne opera mai sul contenuto.
+
+' --- RELAZIONI ---
+
+' Il Caretaker aggrega i memento (stoccaggio)
+Caretaker o-- Memento : - history
+
+' L'Originator istanzia i memento
+Originator ..> Memento : <<create>>
+
+@enduml
+
+\end{verbatim}

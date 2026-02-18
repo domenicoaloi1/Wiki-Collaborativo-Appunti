@@ -1,0 +1,113 @@
+Il diagramma del sottosistema di persistenza e sicurezza formalizza l'architettura di accesso allo strato dei dati, strutturata mediante l'integrazione dei pattern \textit{Table Data Gateway} e \textit{Protection Proxy} \cite{689, 1370, 1381}. Il cuore strutturale è rappresentato dalla gerarchia che discende dalla classe astratta \texttt{AbstractGateway}, la quale centralizza il riferimento protetto all'oggetto \texttt{PDO} e fornisce i metodi necessari per la composizione sicura delle query SQL tramite \textit{Query Object} \cite{1403, 1422, 2158}. In conformità ai requisiti di sicurezza (RNF4), l'accesso operativo ai dati è mediato da una serie di classi \texttt{Proxy} (es. \texttt{NotesGatewayProxy}) che realizzano le interfacce del sottosistema \cite{1307, 2169, 2171}. Tali componenti detengono una \textit{Directed Aggregation} verso i gateway reali, permettendo di intercettare ogni chiamata e verificare i privilegi dell'utente in sessione prima di delegare l'esecuzione effettiva, garantendo così che operazioni sensibili come la creazione o l'eliminazione siano riservate ai soli ruoli autorizzati \cite{1616, 2165, 2170}. Infine, il modulo \texttt{CascadeService} agisce come coordinatore architettonico per le procedure di eliminazione complessa, orchestrando l'interazione tra gateway differenti per assicurare la consistenza dello stato tra gli appunti e la relativa cronologia delle versioni in conformità al principio della \textit{Separation of Concerns} \cite{2176, 2178, 2179}.
+
+
+
+
+\begin{verbatim}
+@startuml
+skinparam style strictuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+title Diagramma delle classi BE Sottosistema: Persistence & Security
+
+' --- GATEWAY INTERFACES ---
+
+interface IArgomentiGateway <<interface>> {
+    + getArgomenti(strategy : FilterStrategy) : [*]
+    + createArgomento(corsoId : Integer, nome : String) : Integer
+    + updateArgomento(id : Integer, nome : String) : void
+    + deleteArguments(strategy : FilterStrategy) : void
+}
+
+interface ICoursesGateway <<interface>> {
+    + getCourses(strategy : FilterStrategy) : [*]
+    + findAll() : [*]
+    + createCourse(nome : String) : Integer
+    + updateCourse(id : Integer, nome : String) : void
+}
+
+interface INotesGateway <<interface>> {
+    + getNotes(strategy : FilterStrategy) : [*]
+    + createNote(argId : Integer, uId : Integer, titolo : String, corsoId : Integer) : Integer
+    + updateNoteTitle(id : Integer, nome : String) : void
+}
+
+interface IVersionsGateway <<interface>> {
+    + getVersionsList(strategy : FilterStrategy) : [*]
+    + getMemento(strategy : FilterStrategy) : NoteMemento
+    + saveVersion(memento : NoteMemento, corsoId : Integer) : void
+}
+
+' --- BASE INFRASTRUCTURE ---
+
+abstract class AbstractGateway {
+    # pdo : PDO
+    # buildWhereClause(query : QueryObject, inout params : [*]) : String
+    # handleGatewayError(method : String, ex : Exception) : void
+}
+
+' --- REAL GATEWAYS ---
+
+class ArgomentiGateway extends AbstractGateway implements IArgomentiGateway
+class CoursesGateway extends AbstractGateway implements ICoursesGateway
+class NotesGateway extends AbstractGateway implements INotesGateway
+class VersionsGateway extends AbstractGateway implements IVersionsGateway
+class UserGateway extends AbstractGateway
+
+' --- PROTECTION PROXIES ---
+
+class ArgomentiGatewayProxy implements IArgomentiGateway {
+    - user : [*]
+    - unauthorized() : void
+}
+
+class CoursesGatewayProxy implements ICoursesGateway {
+    - user : [*]
+    - unauthorized() : void
+}
+
+class NotesGatewayProxy implements INotesGateway {
+    - user : [*]
+    - unauthorized() : void
+}
+
+class VersionsGatewayProxy implements IVersionsGateway {
+    - user : [*]
+    - unauthorized() : void
+}
+
+' --- COORDINATION SERVICE ---
+
+class CascadeService {
+    - gateways : [*]
+    + deleteNoteWithVersions(noteId : Integer) : void
+    + deleteArgumentWithContent(topicId : Integer) : void
+    + deleteFullCourse(courseId : Integer) : void
+}
+
+' --- RELATIONS ---
+
+' Proxy -> Real Gateway (Directed Aggregation)
+ArgomentiGatewayProxy o--> ArgomentiGateway : - realGateway
+CoursesGatewayProxy o--> CoursesGateway : - realGateway
+NotesGatewayProxy o--> NotesGateway : - realGateway
+VersionsGatewayProxy o--> VersionsGateway : - realGateway
+
+' Service -> Interfaces (Aggregation)
+CascadeService o--> INotesGateway : - gateways
+CascadeService o--> ICoursesGateway : - gateways
+CascadeService o--> IVersionsGateway : - gateways
+CascadeService o--> IArgomentiGateway : - gateways
+
+note left of CascadeService
+  Coordina le cancellazioni massive 
+  per preservare l'integrità referenziale 
+  tra appunti e cronologia.
+end note
+
+@enduml
+\end{verbatim}
+

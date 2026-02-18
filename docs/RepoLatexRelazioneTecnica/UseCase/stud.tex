@@ -1,0 +1,53 @@
+\begin{verbatim}
+@startuml
+
+skinparam shadowing false
+skinparam monochrome true
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam usecase {
+  BackgroundColor white
+  BorderColor black
+}
+
+title USE CASE Studente
+
+left to right direction
+
+actor "Visitatore" as Student
+actor "Studente" as AuthStudent
+
+' Generalizzazione: lo Studente autenticato può fare tutto ciò che fa il visitatore
+Student <|-- AuthStudent
+
+rectangle "Wiki Collaborativo per Appunti" {
+  usecase "CreaAppunto" as UC6
+  usecase "ModificaAppunto" as UC7
+  usecase "GestisceCronologia" as UC8
+  usecase "VisualizzaCorsi" as UC3
+  usecase "VisualizzaArgomenti" as UC4
+  usecase "VisualizzaAppunto" as UC5
+  usecase "CercaAppunto" as UC9
+}
+
+' CreaAppunto
+AuthStudent -- UC9
+UC9 ...> UC5 : <U+00AB>include<U+00BB>
+
+' ModificaAppunto
+AuthStudent -- UC3
+UC5 ...> UC7 : <U+00AB>include<U+00BB>
+UC4 ...> UC5 : <U+00AB>include<U+00BB>
+UC4 ...> UC6 : <U+00AB>include<U+00BB>
+UC3 ...> UC4 : <U+00AB>include<U+00BB>
+
+'GestisceCronologia
+UC5 ...> UC8 : <U+00AB>include<U+00BB>
+
+note right of UC8
+ Include visualizzazione storico
+ e ripristino versioni.
+end note
+
+@enduml
+\end{verbatim}

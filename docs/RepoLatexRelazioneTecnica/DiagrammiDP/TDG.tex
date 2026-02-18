@@ -1,0 +1,44 @@
+\begin{verbatim}
+@startuml
+
+skinparam style strictuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+title Design Pattern: Table Data Gateway
+
+class Client {
+  + operation() : void
+}
+
+class TableDataGateway {
+  + find(id : Integer) : RecordSet
+  + findAll() : RecordSet
+  + insert(data) : void
+  + update(id : Integer, data) : void
+  + delete(id : Integer) : void
+}
+
+class RecordSet {
+  + data
+}
+
+' --- RELAZIONI ---
+
+' Il Client utilizza il Gateway per interagire con la persistenza
+Client ..> TableDataGateway : <<use>>
+
+' Il Gateway produce o popola il RecordSet
+TableDataGateway ..> RecordSet : <<create>>
+
+note bottom of TableDataGateway
+ Incapsula tutto l'SQL (Select, Insert, 
+ Update, Delete) per una specifica tabella.
+ Isola la business logic dalla persistenza.
+end note
+
+@enduml
+
+\end{verbatim}

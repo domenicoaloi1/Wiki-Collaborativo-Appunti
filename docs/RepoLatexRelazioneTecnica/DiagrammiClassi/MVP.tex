@@ -1,0 +1,126 @@
+
+\begin{verbatim}
+
+@startuml
+skinparam style strictuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+title DIagramma Classi FE (MVP)
+
+' --- INFRASTRUTTURA ---
+
+class EventEmitter {
+    - _events : [*]
+    + on(eventName : String, listener : Function) : void
+    + emit(eventName : String, ...args) : void
+}
+
+' --- MODEL ---
+
+class AppModel {
+    + courses : [*]
+    + apiBase : String
+    + currentUser
+    + constructor()
+    + fetchCorsi()
+    + fetchArgomenti(courseId : Integer)
+    + fetchAppunti(argId : Integer)
+    + login(email : String, pass : String)
+    + register(email : String, pass : String)
+    + createNote(argId : Integer, title : String, content : String)
+    + saveVersion(noteId : Integer, text : String, uId : Integer)
+    + renameCourse(id : Integer, newName : String)
+}
+
+AppModel --|> EventEmitter
+
+' --- PRESENTERS ---
+
+class AppPresenter {
+    - model : AppModel
+    - view : AppView
+    + constructor(model : AppModel, view : AppView)
+    + init() : void
+    - bindNavbarEvents() : void
+    + handleCourseSelection(id : Integer) : void
+    + handleViewNote(noteId : Integer) : void
+    + handleSearch(query : String) : void
+    + showLogin() : void
+    + showRegister() : void
+    + goToHome() : void
+}
+
+class AdminPresenter {
+    - model : AppModel
+    - view : AdminView
+    + constructor(model : AppModel, view : AdminView)
+    + init() : void
+    + handleSaveCourse(nome : String) : void
+    + showArgomenti(corsoId : Integer, corsoNome : String) : void
+}
+
+' --- VIEWS (Passive View Pattern) ---
+
+abstract class BaseView {
+    # mainContent : HTMLElement
+    # _createElement(tag : String, className : String, attr : [*]) : HTMLElement
+    + showNotification(msg : String, type : String) : void
+    + showConfirm(msg : String, onConfirm : Function) : void
+}
+
+class AppView {
+    - sidebarContainer : HTMLElement
+    + renderSidebar(courses : [*], onClick : Function) : void
+    + updateNavbar(user) : void
+    + renderWelcomeUser(user, onAdminClick : Function) : void
+}
+
+class NoteView {
+    + renderList(notes : [*], title : String, onRead : Function, onCreate : Function) : void
+    + renderNoteDetail(note, canEdit : Boolean, onSave : Function) : void
+    + renderHistory(versions : [*], onRestore : Function, onRead : Function) : void
+}
+
+class AuthView {
+    + renderLoginForm(onSubmit : Function) : void
+    + renderRegisterForm(onSubmit : Function) : void
+}
+
+class AdminView {
+    + renderAdminDashboard(title : String, items : [*], callbacks : [*]) : void
+}
+
+' --- RELAZIONI ---
+
+AppView --|> BaseView
+NoteView --|> BaseView
+AuthView --|> BaseView
+AdminView --|> BaseView
+
+' Associazioni Presenter -> Model/View
+AppPresenter o--> AppModel : - model
+AppPresenter o--> AppView : - view
+AdminPresenter o--> AppModel : - model
+AdminPresenter o--> AdminView : - view
+
+' Dipendenze di utilizzo e creazione
+AppPresenter ..> AuthView : <U+00AB>use<U+00BB>
+AppPresenter ..> NoteView : <U+00AB>use<U+00BB>
+AppPresenter ..> AdminPresenter : <U+00AB>create<U+00BB>
+
+note right of BaseView
+  Fornisce metodi helper per 
+  la manipolazione del DOM.
+end note
+
+note bottom of AppPresenter
+  Orchestratore principale del flusso 
+  asincrono e delle rotte client-side.
+end note
+
+@enduml
+\end{verbatim}
+

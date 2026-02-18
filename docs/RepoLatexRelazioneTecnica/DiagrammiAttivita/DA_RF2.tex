@@ -1,0 +1,48 @@
+\begin{verbatim}
+@startuml
+skinparam style strictuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam linetype ortho
+
+title Diagramma delle Attività: Login (RF2)
+
+|AppPresenter|
+start
+:Inserimento email e password;
+if (Validazione formato UI?) then ([ok])
+else ([errore])
+    :Mostra errore validazione;
+    stop
+endif
+
+|AppModel|
+:Richiesta login (fetch POST);
+
+|Backend (Router/Gateway)|
+:Ricezione credenziali;
+:Query DB (EmailFilter);
+
+|File System / DB|
+:SELECT FROM utenti;
+
+|Backend (Router/Gateway)|
+if (Dati corretti?) then ([no])
+    :Ritorna JSON 401 (Unauthorized);
+    |AppPresenter|
+    :Mostra "Credenziali errate";
+    stop
+else ([si])
+    |Backend (Router/Gateway)|
+    :Avvio sessione (session_start);
+    :Salvataggio dati in $_SESSION;
+    :Ritorna JSON 200 (OK);
+        
+    |AppPresenter|
+    :Aggiorna stato loggedIn;
+    :Redirect alla Home;
+    stop
+endif
+
+@enduml
+\end{verbatim}

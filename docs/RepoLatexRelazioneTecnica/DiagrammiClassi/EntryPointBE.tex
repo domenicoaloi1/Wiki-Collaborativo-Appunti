@@ -1,0 +1,107 @@
+
+
+
+\begin{verbatim}
+@startuml
+skinparam style strictuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+title Diagramma delle classi BE Sottosistema: Bootstrap & Orchestration
+
+' --- COMPOSITION ROOT ---
+
+class Bootstrap <<Focus>> {
+    + main() : void
+    - registerAutoloader() : void
+}
+
+note right of Bootstrap
+  Modella la logica di index.php:
+  Configura l'ambiente, istanzia
+  DatabaseFactory e Router.
+end note
+
+class DatabaseFactory {
+    - config : [*]
+    + createConnection() : PDO
+}
+
+class Router {
+    - routes : [*]
+    - dependencies : [*]
+    + dispatch() : void
+}
+
+' --- CONTROLLER HIERARCHY ---
+
+
+abstract class BaseController {
+    # pdo : PDO
+    # gateways : [*]
+    + constructor(deps : [*])
+}
+
+note right of BaseController
+    Tutti i controller nel backend ricevono le dipendenze
+    tramite l'array $deps(gateways) e pdo nel costruttore
+end note
+
+
+class AuthController {
+    + login() : void
+    + logout() : void
+    + register() : void
+}
+
+class NoteController {
+    + index() : void
+    + show() : void
+    + search() : void
+    + create() : void
+    + update() : void
+    + delete() : void
+}
+
+class ArgumentController {
+    + index() : void
+    + create() : void
+    + update() : void
+    + delete() : void
+}
+
+class CourseController {
+    + index() : void
+    + create() : void
+    + update() : void
+    + delete() : void
+}
+
+class VersionController {
+    + index() : void
+    + show() : void
+    + save() : void
+    + restore() : void
+}
+
+' --- RELAZIONI ---
+
+' Inizializzazione (Creazione servizi core)
+Bootstrap ..> DatabaseFactory : <<create>>
+Bootstrap ..> Router : <<create>>
+
+' Iniezione e Uso (Usage Dependency)
+' Il Router istanzia i controller localmente nel metodo dispatch()
+Router ...> BaseController : <<use>>
+
+' Specializzazione (Generalizzazione)
+AuthController --|> BaseController
+NoteController --|> BaseController
+ArgumentController --|> BaseController
+CourseController --|> BaseController
+VersionController --|> BaseController
+
+@enduml
+\end{verbatim}

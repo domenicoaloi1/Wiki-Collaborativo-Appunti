@@ -1,0 +1,37 @@
+\begin{verbatim}
+@startuml
+
+skinparam shadowing false
+skinparam monochrome true
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+skinparam usecase {
+  BackgroundColor white
+  BorderColor black
+}
+
+title USE CASE Amministratore
+
+left to right direction
+
+actor "Amministratore" as Admin
+actor "Visitatore" as Student
+
+Student <|-- Admin
+
+rectangle "Wiki Collaborativo per Appunti" {
+  usecase "EffettuaAutenticazione" as UC2
+  usecase "GestisceStrutturaCorsi" as UC11
+}
+
+Admin --- UC2
+UC2 ...> UC11 : <U+00AB>include<U+00BB>
+
+note bottom of UC11
+ Creazione,modifica e eliminazione di Corsi e Argomenti. 
+ Eliminazione degli Appunti e modifica dei Titoli Appunti.
+end note
+
+@enduml
+\end{verbatim}

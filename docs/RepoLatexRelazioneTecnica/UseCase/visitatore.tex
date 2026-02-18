@@ -1,0 +1,51 @@
+\begin{verbatim}
+@startuml
+
+skinparam shadowing false
+skinparam monochrome true
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+skinparam usecase {
+ BackgroundColor white
+ BorderColor black
+}
+
+title USE CASE Visitatore
+
+left to right direction
+
+actor "Visitatore" as Student
+
+rectangle "Wiki Collaborativo per Appunti" {
+ usecase "RegistraUtente" as UC1
+ usecase "EffettuaAutenticazione" as UC2
+ usecase "VisualizzaCorsi" as UC3
+ usecase "VisualizzaArgomenti" as UC4
+ usecase "VisualizzaAppunto" as UC5
+ usecase "CercaAppunto" as UC9
+}
+
+' Collegamenti principali
+
+Student -- UC3
+Student -- UC9
+Student -- UC1
+Student -- UC2
+
+' Relazioni tra Use Case
+
+UC3 ...> UC4 : <U+00AB>include<U+00BB>
+UC4 ...> UC5 : <U+00AB>include<U+00BB>
+
+' Inversione per posizionare <<extend>> sopra la linea
+
+UC9 <... UC4 : <U+00AB>extend<U+00BB>
+
+note bottom of Student
+ Include utenti non registrati
+ che consultano il materiale.
+end note
+
+@enduml
+\end{verbatim}

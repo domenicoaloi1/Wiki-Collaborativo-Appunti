@@ -1,0 +1,71 @@
+\begin{verbatim}
+@startuml
+skinparam style strictuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam linetype ortho
+
+title Schema ER
+
+entity "utenti" as U {
+    id : INT <<PK>>
+    --
+    email : VARCHAR(255) <<unique>>
+    password : VARCHAR(255)
+    ruolo : ENUM('studente', 'amministratore')
+    data_registrazione : TIMESTAMP
+}
+
+entity "corsi" as C {
+    id : INT <<PK>>
+    --
+    nome : VARCHAR(100) <<unique>>
+}
+
+entity "argomenti" as A {
+    id : INT <<PK>>
+    --
+    nome : VARCHAR(100)
+    corso_id : INT <<FK>>
+}
+
+entity "appunti" as N {
+    id : INT <<PK>>
+    --
+    titolo : VARCHAR(255)
+    argomento_id : INT <<FK>>
+    utente_id : INT <<FK>>
+    file_path : VARCHAR(255) <<FS Path>>
+    data_creazione : TIMESTAMP
+}
+
+note left of N
+  Il campo file_path
+  identifica un file 
+  fisico
+end note
+
+entity "versioni" as V {
+    id : INT <<PK>>
+    --
+    appunto_id : INT <<FK>>
+    utente_id : INT <<FK>>
+    file_path : VARCHAR(255) <<FS Path>>
+    data_modifica : TIMESTAMP
+}
+
+note left of V
+  Il campo file_path
+  identifica un file 
+  fisico
+end note
+
+' Relazioni con molteplicità numerica e vincoli SQL
+C "1" -- "0..*" A
+A "1" -- "0..*" N
+U "0..1" -- "1..*" N
+N "1" -- "1..*" V
+U "0..1" -- "1..*" V
+
+@enduml
+\end{verbatim}

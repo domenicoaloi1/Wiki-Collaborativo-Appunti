@@ -1,0 +1,37 @@
+\begin{verbatim}
+@startuml
+skinparam style strictuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam linetype ortho
+
+title Architettura Fisica (Deployment)
+
+
+node "Client PC" <<device>> {
+    node "Web Browser" <<executionEnvironment>> {
+        artifact "Frontend App" <<artifact>>
+    }
+}
+
+node "Web Server" <<device>> {
+    node "Apache / PHP" <<executionEnvironment>> {
+        artifact "Backend Logic" <<artifact>>
+        artifact "Markdown Storage" <<artifact>>
+    }
+}
+
+node "Database Server" <<device>> {
+    node "MySQL" <<executionEnvironment>> {
+        artifact "wiki_db" <<artifact>>
+    }
+}
+
+
+' --- CONNESSIONI ---
+
+"Client PC" -- "Web Server" : <<http>> : 8080
+"Web Server" -- "Database Server" : <<tcp/ip>> : 3306
+
+@enduml
+\end{verbatim}

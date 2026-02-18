@@ -1,0 +1,88 @@
+
+
+
+\begin{verbatim}
+@startuml
+skinparam style strictuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+title Diagramma delle classi BE Sottosistema: Strategy & Query Object
+
+' --- INTERFACES ---
+
+interface FilterStrategy <<interface>> {
+    + buildCriteria(query : QueryObject) : void
+}
+
+' --- CONCRETE STRATEGIES ---
+
+class NoFilter implements FilterStrategy {
+    + buildCriteria(query : QueryObject) : void
+}
+
+class SearchFilter implements FilterStrategy {
+    - searchTerm : String
+    + buildCriteria(query : QueryObject) : void
+}
+
+class CourseFilter implements FilterStrategy {
+    - courseId : Integer
+    + buildCriteria(query : QueryObject) : void
+}
+
+class IdFilter implements FilterStrategy {
+    - id : Integer
+    + buildCriteria(query : QueryObject) : void
+}
+
+class IdInFilter implements FilterStrategy {
+    - ids : [*]
+    + buildCriteria(query : QueryObject) : void
+}
+
+class ArgomentoFilter implements FilterStrategy {
+    - argomentoId : Integer
+    + buildCriteria(query : QueryObject) : void
+}
+
+class AppuntoFilter implements FilterStrategy {
+    - appuntoId : Integer
+    + buildCriteria(query : QueryObject) : void
+}
+
+' --- QUERY OBJECT STRUCTURE ---
+
+class QueryObject {
+    - criteria : [*]
+    + addCriteria(c : Criteria) : void
+    + getCriteria() : [*]
+}
+
+class Criteria {
+    - field : String
+    - operator : String
+    - value : [*]
+    + getField() : String
+    + getOperator() : String
+    + getValue() : [*]
+}
+
+' --- RELATIONS ---
+
+' Usage: Le strategie usano il QueryObject per depositare i criteri
+FilterStrategy ..> QueryObject : <<use>>
+
+' Aggregation: Il QueryObject contiene una collezione di criteri
+QueryObject o--> Criteria : - criteria
+
+note left of Criteria
+  Rappresenta l'astrazione di una
+  clausola SQL (es: campo = valore)
+  senza dipendere dalla stringa finale.
+end note
+
+@enduml
+\end{verbatim}

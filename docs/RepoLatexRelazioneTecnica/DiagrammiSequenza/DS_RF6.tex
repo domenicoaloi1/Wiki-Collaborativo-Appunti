@@ -1,0 +1,57 @@
+\begin{verbatim}
+@startuml
+skinparam style strictuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+
+title Diagramma di sequenza: RF6 (Creazione Appunto)
+
+' --- DICHIARAZIONE PARTECIPANTI ---
+
+actor ": User" as ST <<actor>>
+participant "nc : NoteController" as NC
+participant "ngp : NotesGatewayProxy" as NGP <<proxy>>
+participant "ng : NotesGateway" as NG <<real gateway>>
+participant "pdo : PDO" as PDO
+
+' --- FLUSSO DELLE INTERAZIONI ---
+
+ST -> NC : create(data)
+activate ST
+activate NC
+
+    NC -> NGP : createNote(argId, uId, titolo, cont, corsoId)
+    activate NGP
+    
+    note over NGP : Controllo Sicurezza:\nif (user.ruolo === 'studente')
+    
+    alt Utente Autorizzato
+        
+        NGP -> NG : createNote(argId, uId, titolo, cont, corsoId)
+        activate NG
+            
+            NG -> PDO : prepare/execute(INSERT)
+            activate PDO
+            return
+            
+            note right of NG : Creazione file fisico .md\nin storage/notes/
+            
+        return newNoteId
+        NGP --> NC : newNoteId
+        NC --> ST : JSON (200 Success)
+
+    else Accesso Negato (Unauthorized)
+        
+        NGP -> NGP : unauthorized()
+        return throw Exception("Accesso negato")
+        NC --> ST : JSON Error (403 Forbidden)
+        
+    end
+
+deactivate NGP
+deactivate NC
+deactivate ST
+
+@enduml
+\end{verbatim}

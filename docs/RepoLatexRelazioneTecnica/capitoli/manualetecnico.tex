@@ -1,0 +1,91 @@
+\chapter{Manuale Tecnico}
+
+\section{Introduzione}
+Il sistema \textbf{Wiki UNIPR} è progettato per essere eseguito in un ambiente containerizzato tramite \textbf{Docker}. Questa architettura garantisce che il software funzioni in modo identico su qualsiasi macchina, isolando le dipendenze del Backend (PHP), del Database (MySQL) e del Frontend (Apache).
+
+\section{Requisiti di Sistema}
+Prima di procedere, assicurarsi che i seguenti strumenti siano installati e correttamente configurati:
+\begin{itemize}
+    \item \textbf{Docker Desktop} (Windows/macOS) o \textbf{Docker Engine} (Linux).
+    \item \textbf{Docker Compose} (solitamente incluso nelle versioni recenti di Docker).
+    \item Un terminale (Bash, PowerShell o WSL).
+\end{itemize}
+
+\section{Inizializzazione del Database}
+Il database viene configurato automaticamente durante il primo avvio del container DB. 
+\subsection{Logica di Popolamento}
+Docker esegue gli script SQL presenti nella cartella \texttt{./services/database/configs/} seguendo l'ordine alfabetico dei nomi dei file. Per questo motivo, i file sono stati nominati con un prefisso numerico:
+
+\begin{enumerate}
+    \item \textbf{\texttt{01\_init.sql}}: Contiene i comandi \texttt{DROP DATABASE IF EXISTS} e \texttt{CREATE DATABASE} per garantire un ambiente pulito, seguiti dalla creazione delle tabelle con i relativi vincoli di integrità.
+    \item \textbf{\texttt{02\_dump.sql}}: Contiene gli \texttt{INSERT} iniziali per popolare la tabella \texttt{corsi}, gli argomenti di test e gli utenti predefiniti.
+\end{enumerate}
+
+\section{Script di Automazione}
+Per semplificare la gestione dell'ambiente, sono stati predisposti tre script \texttt{.sh} nella root del progetto.
+
+\subsection{Avvio del Progetto (\texttt{run\_project.sh})}
+Utilizzare questo script per avviare l'intero stack. Lo script richiede all'utente se desidera effettuare un reset dei volumi per ricaricare il database da zero.
+\begin{verbatim}
+./run_project.sh
+\end{verbatim}
+
+\subsection{Arresto del Progetto (\texttt{stop\_project.sh})}
+Ferma i container in esecuzione senza eliminare i dati salvati nel database.
+\begin{verbatim}
+./stop_project.sh
+\end{verbatim}
+
+\subsection{Reset Totale (\texttt{reset\_all.sh})}
+Elimina container, volumi e immagini, ricostruendo l'ambiente da uno stato pulito. Utile in caso di modifiche strutturali al file \texttt{init.sql}.
+\begin{verbatim}
+./reset_all.sh
+\end{verbatim}
+
+\section{Procedura di Installazione Standard}
+\begin{enumerate}
+    \item Clonare il repository o estrarre i file del progetto.
+    \item Aprire il terminale nella cartella principale.
+    \item Fornire i permessi di esecuzione agli script:
+    \begin{verbatim}
+chmod +x *.sh
+    \end{verbatim}
+    \item Eseguire lo script di avvio:
+    \begin{verbatim}
+./run_project.sh
+    \end{verbatim}
+    \item Almeno al primo avvio alla domanda su reset rispondere S
+    \begin{verbatim}
+Vuoi resettare il database e lo storage? (Perderai i dati correnti) [S/N]
+    \end{verbatim}
+    \item Attendere circa 10-15 secondi per consentire a MySQL di completare l'inizializzazione.
+    \item Accedere all'app tramite browser all'indirizzo:
+        \begin{verbatim}
+http://localhost:8080
+        \end{verbatim}
+\end{enumerate}
+
+\section{Credenziali di Test}
+Per verificare le funzionalità del sistema (Login, consultazione e permessi), sono stati predisposti i seguenti account nel file di dump:
+
+
+\begin{table}[h!]
+\centering
+\caption{Credenziali di test pre-caricate nel sistema.}
+\label{tab:credenziali}
+\resizebox{\textwidth}{!}{% <-- Inizio ridimensionamento
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Tipo Utente} & \textbf{Email} & \textbf{Password} & \textbf{Ruolo} \\ \hline
+Amministratore & \texttt{admin@unipr.it} & \texttt{Vector!} & \texttt{amministratore} \\ \hline
+Studente & \texttt{studente\_test1@studenti.unipr.it} & \texttt{Prova1} & \texttt{studente} \\ \hline
+Studente & \texttt{studente\_test2@studenti.unipr.it} & \texttt{Prova2} & \texttt{studente} \\ \hline
+Studente & \texttt{studente\_test3@studenti.unipr.it} & \texttt{Prova3} & \texttt{studente} \\ \hline
+\end{tabular}% <-- Fine ridimensionamento
+}
+\end{table}
+
+
+\section{Risoluzione dei Problemi}
+Se le tabelle non dovessero risultare presenti (\textit{Table not found}), eseguire il comando \texttt{./reset\_all.sh}. Questo forzerà Docker a cancellare il volume dati esistente e a rieseguire gli script di inizializzazione \texttt{01\_init.sql} e \texttt{02\_dump.sql}.
+

@@ -1,0 +1,73 @@
+\subsection{Modellazione Comportamentale: Ricerca Appunti e Pattern Strategy}
+
+
+
+\begin{verbatim}
+@startuml
+skinparam style strictuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+
+title Diagramma di sequenza: RF9 (Ricerca Appunti)
+
+actor " : User" as ST
+participant "nc : NoteController" as NC
+participant "sf : SearchFilter" as SF <<strategy>>
+participant "ng : NotesGateway" as NG <<gateway>>
+participant "qo : QueryObject" as QO
+participant "pdo : PDO" as PDO
+database "wiki_db" as DB <<service>>
+
+ST -> NC : search(query)
+activate ST
+activate NC
+
+    NC -> SF : create(query)
+    activate SF
+    SF --> NC
+    deactivate SF
+    
+    NC -> NG : getNotes(sf)
+    activate NG
+        
+        NG -> QO : create()
+        activate QO
+        QO --> NG
+        deactivate QO
+        
+        NG -> SF : buildCriteria(qo)
+        activate SF
+            SF -> QO : addCriteria(new Criteria("titolo", "LIKE", "%query%"))
+            activate QO
+            QO --> SF
+            deactivate QO
+        SF --> NG
+        deactivate SF
+        
+        NG -> NG : buildWhereClause(qo, params)
+        note right: Metodo interno di AbstractGateway
+        
+        NG -> PDO : prepare(fullSql)
+        activate PDO
+        PDO --> NG : stmt : PDOStatement
+        deactivate PDO
+        
+        NG -> PDO : execute(params)
+        activate PDO
+            ' Comunicazione inter-container (Docker)
+            PDO -> DB : SQL Query (Prepared Statement)
+            activate DB
+            DB --> PDO : recordset
+            deactivate DB
+        PDO --> NG : true
+        deactivate PDO
+        
+    NG --> NC : notes_array
+    deactivate NG
+    
+NC --> ST : JSON(notes_array)
+deactivate NC
+deactivate ST
+@enduml
+\end{verbatim}

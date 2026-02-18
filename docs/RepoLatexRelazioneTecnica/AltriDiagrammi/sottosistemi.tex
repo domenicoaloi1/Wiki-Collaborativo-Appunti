@@ -1,0 +1,35 @@
+\begin{verbatim}
+@startuml
+skinparam style strictuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam linetype ortho
+
+title Package Diagram
+
+package "Wiki Collaborativo" as System <<model>> {
+
+    package "Sottosistema Presentazione" as FE <<subsystem>> {
+        package "Presentation Logic" as MVP
+        note right of MVP : View, Presenter, Model
+    }
+
+    package "Sottosistema Business Logic" as BE <<subsystem>> {
+        package "Core" as CoreBE
+        package "Patterns" as PatBE
+        CoreBE ..> PatBE : <<use>>
+    }
+
+    package "Sottosistema Persistenza" as DB_Sub <<subsystem>> {
+        database "wiki_db (MySQL)" as SQL
+    }
+}
+
+' Comunicazione Stateless REST
+FE ...> BE : <<use>>
+
+' Accesso atomico tramite PDO
+BE ...> DB_Sub : <<use>>
+
+@enduml
+\end{verbatim}
