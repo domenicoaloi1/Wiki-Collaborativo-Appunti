@@ -20,7 +20,7 @@ class AuthController {
 
         $user = $this->userGateway->getUser(new EmailFilter($email));
 
-        if ($user && hash('sha256', $password) === $user['password']) {
+        if ($user && password_verify($password, $user['password'])) {
             unset($user['password']);
             $_SESSION['user'] = $user;
             
@@ -55,7 +55,7 @@ class AuthController {
             return;
         }
 
-        $hashedPassword = hash('sha256', $data['password']);
+        $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
 
         try {
             $userId = $this->userGateway->register([

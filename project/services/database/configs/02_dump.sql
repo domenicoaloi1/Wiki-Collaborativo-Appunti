@@ -3,12 +3,14 @@
 -- Dati di test
 
 -- Utenti
+-- Password memorizzate come hash bcrypt (password_hash di PHP), in chiaro nel README:
+-- admin -> Vector!   studenti -> Prova1 / Prova2 / Prova3
 
 INSERT INTO utenti (id, email, password, ruolo) VALUES 
-(1, 'admin@unipr.it', SHA2('Vector!', 256), 'amministratore'),
-(2, 'studente_test1@studenti.unipr.it', SHA2('Prova1', 256), 'studente'),
-(3, 'studente_test2@studenti.unipr.it', SHA2('Prova2', 256), 'studente'),
-(4, 'studente_test3@studenti.unipr.it', SHA2('Prova3', 256), 'studente')
+(1, 'admin@unipr.it', '$2y$10$WBqxw1/9OaCbScqI5YD3LuuSFXAn0lXXbwf2/Ayznh0lRJOJLkQEW', 'amministratore'),
+(2, 'studente_test1@studenti.unipr.it', '$2y$10$.3dCAFFgvqNWdAqwzrHMoOEUt3RXTSFiaRhlcRvcZs48CyViM60Fe', 'studente'),
+(3, 'studente_test2@studenti.unipr.it', '$2y$10$XYNoOz.EDCcecTh6/2n8uOMiylQOHKN6Aqt0ultEgtYgCRK1BzBhe', 'studente'),
+(4, 'studente_test3@studenti.unipr.it', '$2y$10$H/3V3jT526OHUiK7BugHK.fUozqbHNfILohRDBWrYFvXA4SYj9gN2', 'studente')
 ON DUPLICATE KEY UPDATE password = VALUES(password);
 
 -- Corsi
