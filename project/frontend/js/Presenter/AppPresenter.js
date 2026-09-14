@@ -154,7 +154,7 @@ class AppPresenter {
 
     async handleSaveVersion(noteId, testo) {
         try {
-            const nuovaVersione = await this.model.saveVersion(noteId, testo, this.model.currentUser.id);
+            const nuovaVersione = await this.model.saveVersion(noteId, testo);
             
             this.view.showSuccess("Nuova versione salvata con successo!");
 
@@ -196,7 +196,7 @@ class AppPresenter {
         const messaggio = "Sei sicuro di voler ripristinare questa versione? Il testo attuale verrà archiviato e sostituito.";
         this.view.showRestoreConfirm(messaggio, async () => {
             try {
-                const result = await this.model.restoreVersion(versioneId, this.model.currentUser.id);
+                const result = await this.model.restoreVersion(versioneId);
                 this.view.showSuccess("Versione ripristinata correttamente!");
                 await this.handleViewNote(noteId);
             } catch (e) {
@@ -209,7 +209,7 @@ class AppPresenter {
         const noteView = new NoteView();
         noteView.renderCreateNoteForm(argId, async (titolo, contenuto) => {
             try {
-                const res = await this.model.createNote(argId, this.model.currentUser.id, titolo, contenuto);
+                const res = await this.model.createNote(argId, titolo, contenuto);
                 this.view.showSuccess("Appunto creato!");
                 await this.handleViewNote(res.id);
             } catch (e) {
