@@ -8,3 +8,5 @@
 /appunti
 *.code-workspace
 
+# Cache dei test (PHPUnit phar + risultati)
+/project/backend/tests/.cache

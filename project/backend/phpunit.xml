@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- backend/phpunit.xml : eseguire con ./run_tests.sh dalla radice del repo -->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         cacheDirectory="tests/.cache/phpunit"
+         failOnWarning="true">
+    <testsuites>
+        <testsuite name="backend">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory suffix=".php">Model</directory>
+        </include>
+    </source>
+</phpunit>
