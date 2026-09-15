@@ -92,9 +92,8 @@ Il progetto è stato sviluppato in poche settimane con l'obiettivo di superare l
 | --- | --- |
 | Password memorizzate come `sha256` senza salt | `password_hash()` / `password_verify()` (bcrypt) |
 | L'id dell'autore arrivava dal body JSON: il Proxy controllava il ruolo ma non l'identità | L'autore è sempre `$_SESSION['user']['id']`; il body viene ignorato |
-| File `AppuntoIdInFIlter.php` con maiuscola sbagliata: funzionava solo su file system case-insensitive | File rinominato per combaciare con la classe |
 | Credenziali DB e origine CORS hardcoded nel codice e nel compose | Variabili in `project/.env` (non versionato) con template `.env.example` |
-| `debug.php` che esponeva la sessione, `mkdir 0777`, jQuery incluso ma mai usato | Rimossi / corretti |
+| `debug.php` che esponeva la sessione, `mkdir 0777` | Rimossi / corretti |
 | Nessun test automatico (solo il piano di test black-box nella relazione) | Test PHPUnit su Strategy, composizione delle query e Protection Proxy |
 
 Restano volutamente fuori scope le scelte architetturali (assenza di framework e di namespace, autoloader custom, storage su file) perché sono parte di quanto richiesto e valutato all'esame.
