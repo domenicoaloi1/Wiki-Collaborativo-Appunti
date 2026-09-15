@@ -1,1 +1,10 @@
+# Storage runtime degli appunti (popolato da run_project.sh)
 /project/backend/storage/notes
+
+# Configurazione locale (credenziali)
+/project/.env
+
+# File locali non di progetto
+/appunti
+*.code-workspace
+

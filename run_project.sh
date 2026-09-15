@@ -14,7 +14,13 @@ else
     exit 1
 fi
 
-# 2. Gestione Database e Reset
+# 2. Configurazione: crea project/.env dal template se manca
+if [ ! -f "project/.env" ]; then
+    echo "File project/.env non trovato: lo creo da .env.example (modificalo per cambiare le credenziali)."
+    cp project/.env.example project/.env
+fi
+
+# 3. Gestione Database e Reset
 echo "Vuoi resettare il database e lo storage? (Perderai i dati correnti) [S/N]"
 read response
 
@@ -41,7 +47,7 @@ else
     fi
 fi
 
-# 3. Inizializzazione storage (solo se necessario)
+# 4. Inizializzazione storage (solo se necessario)
 if [ "$INIT_REQUIRED" = true ]; then
     if [ -d "appunti_prova" ]; then
         echo "Popolamento storage da appunti_prova..."
@@ -52,7 +58,7 @@ if [ "$INIT_REQUIRED" = true ]; then
     fi
 fi
 
-# 4. Avvio
+# 5. Avvio
 cd project
 docker-compose up -d --build
 

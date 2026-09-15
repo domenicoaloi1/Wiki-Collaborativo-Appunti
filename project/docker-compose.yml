@@ -3,11 +3,9 @@ services: # docker-compose.yml
   db:
     image: mysql:8.0
     restart: always
-    environment:
-      MYSQL_DATABASE: wiki_db
-      MYSQL_USER: wiki_user
-      MYSQL_PASSWORD: wiki_password
-      MYSQL_ROOT_PASSWORD: root_password
+    # Credenziali in .env (vedi .env.example)
+    env_file:
+      - .env
     volumes:
       - db_data:/var/lib/mysql
       # Script di init
@@ -19,6 +17,8 @@ services: # docker-compose.yml
     build:
       context: .
       dockerfile: Dockerfile.be
+    env_file:
+      - .env
     ports: # PC-HOST:8000 ---> CONTAINER:80
       - "8000:80"
     volumes:
