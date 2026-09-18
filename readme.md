@@ -109,3 +109,7 @@ project/
 appunti_prova/  appunti di esempio copiati nello storage al primo avvio
 docs/           relazione tecnica, manuale utente e sorgenti LaTeX
 ```
+
+## Licenza
+
+Il codice è rilasciato sotto licenza [MIT](LICENSE). Le librerie in `project/frontend/*/vendor/` (Bootstrap, Bootstrap Icons, Showdown) sono anch'esse distribuite sotto licenza MIT dai rispettivi autori.
