@@ -65,7 +65,7 @@ class NotesGateway extends AbstractGateway implements INotesGateway{
             $relativePath = "storage/notes/$corsoId/$newId.md";
             $fullPath = __DIR__ . "/../../" . $relativePath;
             
-            if (!is_dir(dirname($fullPath))) mkdir(dirname($fullPath), 0777, true);
+            if (!is_dir(dirname($fullPath))) mkdir(dirname($fullPath), 0775, true);
             file_put_contents($fullPath, $cont);
 
             // Aggiornamento percorso

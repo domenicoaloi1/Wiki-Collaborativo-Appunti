@@ -1,8 +1,9 @@
 <?php
 // backend/index.php
 
-// REST + CORS
-header("Access-Control-Allow-Origin: http://localhost:8080");
+// REST + CORS (origine del frontend configurabile via .env)
+$allowedOrigin = getenv('CORS_ALLOWED_ORIGIN') ?: 'http://localhost:8080';
+header("Access-Control-Allow-Origin: $allowedOrigin");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 header('Content-Type: application/json; charset=utf-8');
@@ -16,26 +17,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 
 // LOAD FILES
 require_once 'Router.php';
-spl_autoload_register(function ($class_name) {
-    $dirs = ['Model/Core/', 'Model/Gateway/', 'Model/Gateway/ProxyProtection/', 'Model/Gateway/Interface/', 'Model/Strategy/', 'Model/Memento/', 'Controller/',''];
-    foreach ($dirs as $dir) {
-        $file = __DIR__ . '/' . $dir . $class_name . '.php';
-        // error_log("Cerco la classe $class_name in: $file");
-        if (file_exists($file)) {
-            require_once $file;
-            return;
-        }
-    }
-});
+require_once 'autoload.php';
 
-// DB
+// DB: credenziali dalle variabili d'ambiente (project/.env, vedi .env.example)
 $dbConfig = [
-    'host' => 'db',
-    'db'   => 'wiki_db',
-    'user' => 'wiki_user',
-    'pass' => 'wiki_password'
+    'host' => getenv('DB_HOST') ?: 'db',
+    'db'   => getenv('MYSQL_DATABASE') ?: 'wiki_db',
+    'user' => getenv('MYSQL_USER') ?: '',
+    'pass' => getenv('MYSQL_PASSWORD') ?: ''
 ];
-$factory = new DatabaseFactory($dbConfig);
 $pdo = (new DatabaseFactory($dbConfig))->createConnection();
 
 // Inizializzazione

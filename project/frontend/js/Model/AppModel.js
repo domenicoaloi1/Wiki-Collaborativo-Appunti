@@ -47,13 +47,12 @@ class AppModel extends EventEmitter{
         return await response.json();
     }
 
-    async createNote(argomentoId, utenteId, titolo, contenuto) {
+    async createNote(argomentoId, titolo, contenuto) {
         const response = await fetch(`${this.apiBase}/appunto/crea`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 argomento_id: argomentoId,
-                utente_id: utenteId,
                 titolo: titolo,
                 contenuto: contenuto
             }),
@@ -68,11 +67,11 @@ class AppModel extends EventEmitter{
         return data;
     }
 
-    async saveVersion(noteId, testo, utenteId) {
+    async saveVersion(noteId, testo) {
         const response = await fetch(`${this.apiBase}/appunto/versione/salva`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: noteId, testo, utente_id: utenteId }),
+            body: JSON.stringify({ id: noteId, testo }),
             credentials: 'include'
         });
         if (!response.ok) throw new Error("Errore nel salvataggio della versione");
@@ -91,11 +90,11 @@ class AppModel extends EventEmitter{
         return await response.json();
     }
 
-    async restoreVersion(versioneId, utenteId) {
+    async restoreVersion(versioneId) {
         const response = await fetch(`${this.apiBase}/appunto/versione/ripristina`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ versione_id: versioneId, utente_id: utenteId }),
+            body: JSON.stringify({ versione_id: versioneId }),
             credentials: 'include'
         });
         if (!response.ok) throw new Error("Errore nel ripristino della versione");

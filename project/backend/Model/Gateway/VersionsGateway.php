@@ -63,7 +63,7 @@ class VersionsGateway extends AbstractGateway implements IVersionsGateway {
         // Directory
         $relativeDir = "storage/notes/$corsoId/versions/$appuntoId";
         $fullPathDir = __DIR__ . "/../../" . $relativeDir;
-        if (!is_dir($fullPathDir)) mkdir($fullPathDir, 0777, true);
+        if (!is_dir($fullPathDir)) mkdir($fullPathDir, 0775, true);
 
         // Salvataggi
         $path = $relativeDir . "/" . $fileName;

@@ -68,11 +68,19 @@ class VersionController {
     // Corrisponde a: POST /appunto/versione/salva
     public function save() {
         $data = json_decode(file_get_contents('php://input'), true);
-        
+
+        // Chi salva è l'utente in sessione, non un id passato dal client
+        $utenteId = (int)($_SESSION['user']['id'] ?? 0);
+        if ($utenteId <= 0) {
+            http_response_code(401);
+            echo json_encode(["error" => "Autenticazione richiesta"]);
+            return;
+        }
+
         try {
             $this->pdo->beginTransaction();
 
-            $appuntoId = (int)$data['id'];
+            $appuntoId = (int)($data['id'] ?? 0);
             
             $notes = $this->notesGateway->getNotes(new IdFilter($appuntoId));
             if (empty($notes)) throw new Exception("Appunto non trovato");
@@ -93,7 +101,7 @@ class VersionController {
 
             $this->notesGateway->updateNoteContent($appuntoId, $data['testo']);
             
-            $this->notesGateway->updateLastUserTouchedNote($appuntoId, $data['utente_id']);
+            $this->notesGateway->updateLastUserTouchedNote($appuntoId, $utenteId);
             
             $this->pdo->commit();
             echo json_encode([
@@ -112,8 +120,15 @@ class VersionController {
     // Corrisponde a: POST /appunto/versione/ripristina
     public function restore() {
         $data = json_decode(file_get_contents('php://input'), true);
-        $versioneId = (int)$data['versione_id'];
-        $utenteChiRipristina = (int)$data['utente_id'];
+        $versioneId = (int)($data['versione_id'] ?? 0);
+
+        // Chi ripristina è l'utente in sessione, non un id passato dal client
+        $utenteChiRipristina = (int)($_SESSION['user']['id'] ?? 0);
+        if ($utenteChiRipristina <= 0) {
+            http_response_code(401);
+            echo json_encode(["error" => "Autenticazione richiesta"]);
+            return;
+        }
 
         try {
             $this->pdo->beginTransaction();

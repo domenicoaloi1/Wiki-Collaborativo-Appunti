@@ -60,8 +60,16 @@ class NoteController {
     // Corrisponde a: POST /appunto/crea
     public function create() {
         $data = json_decode(file_get_contents('php://input'), true);
-        
-        if (empty($data['titolo']) || empty($data['argomento_id']) || empty($data['utente_id'])) {
+
+        // L'autore è sempre l'utente in sessione: non ci si fida di un id mandato dal client
+        $utenteId = (int)($_SESSION['user']['id'] ?? 0);
+        if ($utenteId <= 0) {
+            http_response_code(401);
+            echo json_encode(["error" => "Autenticazione richiesta"]);
+            return;
+        }
+
+        if (empty($data['titolo']) || empty($data['argomento_id'])) {
             http_response_code(400);
             echo json_encode(["error" => "Dati mancanti per la creazione dell'appunto"]);
             return;
@@ -76,7 +84,7 @@ class NoteController {
 
             $newId = $this->notesGateway->createNote(
                 (int)$data['argomento_id'], 
-                (int)$data['utente_id'], 
+                $utenteId, 
                 $data['titolo'], 
                 $contenutoIniziale,
                 $corsoId
