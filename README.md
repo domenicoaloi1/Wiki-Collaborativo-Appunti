@@ -62,7 +62,6 @@ La relazione tecnica completa (requisiti, casi d'uso, diagrammi UML, piano di te
 Requisiti: Docker (Desktop o Engine) e una shell Bash (Git Bash, WSL, macOS/Linux).
 
 ```bash
-chmod +x *.sh
 ./run_project.sh
 ```
 
