@@ -2,16 +2,12 @@ services: # docker-compose.yml
   # CONTAINER DB
   db:
     image: mysql:8.0
-    restart: always
-    # Credenziali in .env (vedi .env.example)
     env_file:
       - .env
     volumes:
       - db_data:/var/lib/mysql
       # Script di init
       - ./services/database/configs:/docker-entrypoint-initdb.d
-    ports:
-      - "3306:3306"
   # CONTAINER BE (PHP + Apache)
   backend:
     build:
