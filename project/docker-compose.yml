@@ -2,16 +2,20 @@ services: # docker-compose.yml
   # CONTAINER DB
   db:
     image: mysql:8.0
-    restart: always
-    # Credenziali in .env (vedi .env.example)
     env_file:
       - .env
     volumes:
       - db_data:/var/lib/mysql
       # Script di init
       - ./services/database/configs:/docker-entrypoint-initdb.d
-    ports:
-      - "3306:3306"
+    # Pronto solo quando MySQL accetta connessioni TCP: -h 127.0.0.1 (non localhost/socket)
+    # evita il falso "healthy" durante il server temporaneo che esegue gli script di init
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
   # CONTAINER BE (PHP + Apache)
   backend:
     build:
@@ -24,7 +28,8 @@ services: # docker-compose.yml
     volumes:
       - ./backend:/var/www/html
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   # CONTAINER FE (Apache)
   frontend:

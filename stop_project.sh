@@ -4,7 +4,7 @@ echo "Arresto Wiki UNIPR..."
 
 if [ -d "project" ]; then
     cd project
-    docker-compose down
+    docker compose down
 else
     echo "Errore: cartella 'project' non trovata."
     exit 1

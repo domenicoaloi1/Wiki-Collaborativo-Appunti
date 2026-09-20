@@ -28,13 +28,14 @@ if [[ "$response" =~ ^([sS][iI]|[sS])$ ]]; then
     echo "Resettaggio forzato del volume Docker..."
 	cd project
 	# down -v rimuove i volumi definiti nel compose
-    docker-compose down -v --remove-orphans
-	# Forza la rimozione del volume nel caso docker-compose non ci riesca
+    docker compose down -v --remove-orphans
+	# Forza la rimozione del volume nel caso docker compose non ci riesca
     docker volume rm project_db_data 2>/dev/null
 	echo "Volume rimosso."
     cd ..
     # Se resetto il DB, devo resettare anche i file per coerenza col dump SQL
-    rm -rf "$STORAGE_PATH"/*
+    # Svuoto lo storage ma tengo README.md (file tracciato che mantiene la cartella nel repo)
+    find "$STORAGE_PATH" -mindepth 1 -maxdepth 1 ! -name README.md -exec rm -rf {} +
     INIT_REQUIRED=true
 else
     # Se non resetto, controllo se lo storage è vuoto (primo avvio in assoluto)
@@ -60,10 +61,8 @@ fi
 
 # 5. Avvio
 cd project
-docker-compose up -d --build
-
-echo "Attesa inizializzazione MySQL (15 secondi)..."
-sleep 15
+# --wait: torna solo quando db e' healthy (healthcheck nel compose) e il backend e' partito
+docker compose up -d --build --wait
 
 echo ""
 echo "Servizi pronti:"

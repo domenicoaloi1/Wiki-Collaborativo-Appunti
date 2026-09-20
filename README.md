@@ -1,5 +1,9 @@
 # Wiki Collaborativo Appunti
 
+[![CI](https://github.com/domenicoaloi1/Wiki-Collaborativo-Appunti/actions/workflows/ci.yml/badge.svg)](https://github.com/domenicoaloi1/Wiki-Collaborativo-Appunti/actions/workflows/ci.yml)
+
+> *A collaborative wiki for sharing and versioning university lecture notes, written in plain PHP 8 and vanilla JavaScript with no frameworks, so that the design patterns (Table Data Gateway, Protection Proxy, Strategy, Memento, MVP) stay visible in the code. Built as a Software Engineering exam project at the University of Parma, then hardened after submission. Runs with a single Docker Compose command. Documentation is in Italian.*
+
 Applicazione web per condividere, modificare e versionare appunti universitari, organizzati per corso e argomento. Ogni salvataggio genera una nuova versione consultabile e ripristinabile dalla cronologia.
 
 Nato come progetto d'esame di Ingegneria del Software (Università di Parma), realizzato senza framework per rendere espliciti i design pattern usati. Dopo la consegna è stato ripreso e sistemato: alcune scorciatoie accettabili in un contesto accademico (password senza salt, identità dell'utente fidata dal client, credenziali nel codice, nessun test automatico) sono state corrette senza cambiare l'architettura. I dettagli sono in [Revisione post-consegna](#revisione-post-consegna).
@@ -21,6 +25,7 @@ Nato come progetto d'esame di Ingegneria del Software (Università di Parma), re
 | Database | MySQL 8 (metadati) + file system (contenuto Markdown degli appunti e delle versioni) |
 | Deploy | Docker Compose: `frontend` (httpd), `backend` (php:apache), `db` (mysql) |
 | Test | PHPUnit 10, eseguito in container |
+| CI | GitHub Actions: lint PHP 8.2/8.3, PHPUnit, smoke test dell'API su Docker Compose (`.github/workflows/ci.yml`) |
 
 ## Architettura e pattern
 
@@ -33,7 +38,22 @@ Backend: `Router → Controller → Proxy → Gateway → PDO / file system`.
 - **Factory** (`Model/Core/DatabaseFactory.php`): creazione della connessione PDO.
 - **CascadeService**: coordina le eliminazioni a cascata (corso → argomenti → appunti → versioni → file) in transazione.
 
+Diagrammi dei pattern (dalla relazione tecnica, in forma generica):
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/RepoLatexRelazioneTecnica/DiagrammiDP/TDG.png" width="400" alt="Table Data Gateway"></td>
+    <td align="center"><img src="docs/RepoLatexRelazioneTecnica/DiagrammiDP/ProtectionProxy.png" width="400" alt="Protection Proxy"></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/RepoLatexRelazioneTecnica/DiagrammiDP/Strategy.png" width="400" alt="Strategy"></td>
+    <td align="center"><img src="docs/RepoLatexRelazioneTecnica/DiagrammiDP/Memento.png" width="400" alt="Memento"></td>
+  </tr>
+</table>
+
 Frontend: **Model-View-Presenter** con un `EventEmitter` per il disaccoppiamento (`js/Model/AppModel.js`, `js/View/*`, `js/Presenter/*`).
+
+<p align="center"><img src="docs/RepoLatexRelazioneTecnica/DiagrammiDP/MVP.png" width="600" alt="Model-View-Presenter (Passive View)"></p>
 
 La relazione tecnica completa (requisiti, casi d'uso, diagrammi UML, piano di test) e il manuale utente sono in [`docs/`](docs/).
 

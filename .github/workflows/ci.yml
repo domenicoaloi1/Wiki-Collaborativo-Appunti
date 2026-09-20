@@ -1,0 +1,100 @@
+# CI: lint PHP, test unitari PHPUnit e smoke test dell'applicazione su Docker Compose.
+# Gira a ogni push e PR. Lint e test non hanno bisogno del DB; lo smoke avvia
+# l'intero stack (db, backend, frontend) come fa run_project.sh e interroga l'API.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    name: php -l (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ["8.2", "8.3"]
+    container: php:${{ matrix.php }}-cli
+    steps:
+      - uses: actions/checkout@v5
+      - name: Controllo sintassi di tutti i file PHP del backend
+        run: find project/backend -name '*.php' -not -path '*/tests/.cache/*' -print0 | xargs -0 -n1 php -l
+
+  test:
+    name: PHPUnit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      # Stesso script e stesso phar usati in locale
+      - name: Test unitari (Strategy, Proxy, AbstractGateway)
+        run: bash run_tests.sh
+
+  smoke:
+    name: Smoke test su Docker Compose
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: project
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Configurazione e storage (come run_project.sh)
+        run: |
+          cp .env.example .env
+          mkdir -p backend/storage/notes
+          cp -r ../appunti_prova/* backend/storage/notes/
+          # backend/ e' un bind mount: Apache (www-data) deve poter scrivere lo storage
+          chmod -R a+rwX backend/storage
+
+      - name: Avvio dello stack (attende db healthy)
+        run: docker compose up -d --build --wait --wait-timeout 180
+
+      - name: GET /corsi risponde con i corsi del dump
+        run: |
+          body=$(curl -sf http://localhost:8000/corsi)
+          echo "$body"
+          echo "$body" | grep -q '"nome":"Informatica"'
+
+      - name: POST /appunto/crea senza sessione -> 401
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+            -H 'Content-Type: application/json' \
+            -d '{"titolo":"x","argomento_id":1}' \
+            http://localhost:8000/appunto/crea)
+          echo "HTTP $code"
+          test "$code" = "401"
+
+      - name: Login con password errata -> 401
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"studente_test1@studenti.unipr.it","password":"sbagliata"}' \
+            http://localhost:8000/login)
+          echo "HTTP $code"
+          test "$code" = "401"
+
+      - name: Login studente di test e POST /appunto/crea con sessione -> 200
+        run: |
+          code=$(curl -s -c cookies.txt -o /dev/null -w '%{http_code}' -X POST \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"studente_test1@studenti.unipr.it","password":"Prova1"}' \
+            http://localhost:8000/login)
+          echo "login: HTTP $code"
+          test "$code" = "200"
+          body=$(curl -s -b cookies.txt -w '\n%{http_code}' -X POST \
+            -H 'Content-Type: application/json' \
+            -d '{"titolo":"Smoke test CI","argomento_id":1,"contenuto":"# Smoke test"}' \
+            http://localhost:8000/appunto/crea)
+          echo "$body"
+          test "$(echo "$body" | tail -n1)" = "200"
+          echo "$body" | head -n1 | grep -q '"status":"success"'
+          # L'appunto deve essere finito anche sul file system (bind mount)
+          ls backend/storage/notes/1/
+
+      - name: Log dei container (solo in caso di errore)
+        if: failure()
+        run: docker compose logs
+
+      - name: Spegnimento e rimozione volumi
+        if: always()
+        run: docker compose down -v
