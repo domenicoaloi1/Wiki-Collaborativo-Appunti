@@ -16,20 +16,15 @@ jobs:
         php: ["8.2", "8.3"]
     container: php:${{ matrix.php }}-cli
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Controllo sintassi di tutti i file PHP del backend
-        run: |
-          status=0
-          while IFS= read -r -d '' f; do
-            php -l "$f" > /dev/null || status=1
-          done < <(find project/backend -name '*.php' -not -path '*/tests/.cache/*' -print0)
-          exit $status
+        run: find project/backend -name '*.php' -not -path '*/tests/.cache/*' -print0 | xargs -0 -n1 php -l
 
   test:
     name: PHPUnit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       # Stesso script e stesso phar usati in locale
       - name: Test unitari (Strategy, Proxy, AbstractGateway)
         run: bash run_tests.sh
@@ -41,7 +36,7 @@ jobs:
       run:
         working-directory: project
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Configurazione e storage (come run_project.sh)
         run: |
