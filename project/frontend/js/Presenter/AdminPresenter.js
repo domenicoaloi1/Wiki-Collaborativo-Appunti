@@ -35,15 +35,16 @@ class AdminPresenter {
         }
         try {
             await this.model.createCourse(nome);
+            this.view.showSuccess("Corso creato correttamente");
         } catch (e) {
-            console.error("Errore salvataggio:", e);
+            this.view.showError("Errore salvataggio: " + e.message);
         }
     }
 
     async handleDeleteCourse(id) {
         try {
             await this.model.deleteCourse(id);
-            this.init();
+            this.view.showSuccess("Corso cancellato correttamente");
         } catch (e) {
             this.view.showError("Errore eliminazione: " + e.message);
         }
@@ -56,6 +57,7 @@ class AdminPresenter {
         }
         try {
             await this.model.renameCourse(id, nuovoNome);
+            this.view.showSuccess("Titolo corso aggiornato correttamente");
         } catch (e) {
             this.view.showNotification("Errore: " + e.message, "danger");
         }
@@ -69,14 +71,32 @@ class AdminPresenter {
         
         const topics = await this.model.fetchArgomenti(corsoId);
         this.view.renderAdminDashboard(`Argomenti di: ${corsoNome}`, topics, {
-            onSave: (nome) => this.model.createArgomento(corsoId, nome),
-            onDelete: (id) => this.model.deleteArgomento(id, corsoId),
+            onSave: (nome) => this.handleSaveArgument(corsoId, nome),
+            onDelete: (id) => this.handleDeleteArgument(id, corsoId),
             onSelect: (id, nome) => this.showNotes(id, nome, corsoId, corsoNome),
             onEdit: (id, nome) => this.handleEditArgument(id, nome),
             onBack: () => this.init()
         });
     }
     
+    async handleSaveArgument(corsoId, nome) {
+        try {
+            await this.model.createArgomento(corsoId, nome);
+            this.view.showSuccess("Argomento creato correttamente");
+        } catch (e) {
+            this.view.showError("Errore salvataggio: " + e.message);
+        }
+    }
+
+    async handleDeleteArgument(id, corsoId) {
+        try {
+            await this.model.deleteArgomento(id, corsoId);
+            this.view.showSuccess("Argomento cancellato correttamente");
+        } catch (e) {
+            this.view.showError("Errore eliminazione: " + e.message);
+        }
+    }
+
     async handleEditArgument(id, nuovoNome) {
         if (!nuovoNome || nuovoNome.trim().length < 3) {
             this.view.showNotification("Nome troppo corto!");
@@ -84,6 +104,7 @@ class AdminPresenter {
         }
         try {
             await this.model.renameArgomento(id, nuovoNome, this.currentCorsoId);
+            this.view.showSuccess("Titolo argomento aggiornato correttamente");
         } catch (e) {
             this.view.showNotification("Errore: " + e.message, "danger");
         }
@@ -100,13 +121,22 @@ class AdminPresenter {
         const notes = await this.model.fetchAppunti(argId);
         this.view.renderAdminDashboard(`Appunti di: ${argNome}`, notes, {
             onSave: null,
-            onDelete: (id) => this.model.deleteNote(id, argId),
+            onDelete: (id) => this.handleDeleteNote(id, argId),
             onSelect: null,
             onEdit: (id, nome) => this.handleEditNoteTitle(id, nome),
             onBack: () => this.showArgomenti(corsoId, corsoNome)
         });
     }
     
+    async handleDeleteNote(id, argId) {
+        try {
+            await this.model.deleteNote(id, argId);
+            this.view.showSuccess("Appunto eliminato correttamente");
+        } catch (e) {
+            this.view.showError("Errore eliminazione: " + e.message);
+        }
+    }
+
     async handleEditNoteTitle(id, nuovoNome) {
         if (!nuovoNome || nuovoNome.trim().length < 3) {
             this.view.showNotification("Nome troppo corto!");
@@ -114,6 +144,7 @@ class AdminPresenter {
         }
         try {
             await this.model.renameNote(id, nuovoNome, this.currentArgId);
+            this.view.showSuccess("Titolo appunto aggiornato correttamente");
         } catch (e) {
             this.view.showNotification("Errore: " + e.message, "danger");
         }
