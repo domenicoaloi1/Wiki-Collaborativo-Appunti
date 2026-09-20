@@ -12,6 +12,12 @@ Options -Indexes
 # Definisce il file di indice predefinito
 DirectoryIndex index.php
 
+# 0. sicurezza: 403 su cartelle e file che non devono essere raggiungibili via HTTP.
+#    Lo storage degli appunti e' letto solo dal backend (mai dal frontend), i test
+#    e i file di infrastruttura passano solo da index.php.
+RewriteRule ^(storage|tests|Controller|Model)(/|$) - [F,L]
+RewriteRule ^(phpunit\.xml|routes\.php|autoload\.php|Router\.php)$ - [F,L]
+
 # 1. per routing: in caso di ricerca di file esistente (i file di appunti)
 RewriteCond %{REQUEST_FILENAME} !-f
 
