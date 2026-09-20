@@ -86,10 +86,10 @@ Caricati da `project/services/database/configs/02_dump.sql` alla prima creazione
 
 | Ruolo | Email | Password |
 | --- | --- | --- |
-| Amministratore | admin@unipr.it | Vector! |
-| Studente | studente_test1@studenti.unipr.it | Prova1 |
-| Studente | studente_test2@studenti.unipr.it | Prova2 |
-| Studente | studente_test3@studenti.unipr.it | Prova3 |
+| Amministratore | admin@example.com | Vector! |
+| Studente | studente1@example.com | Prova1 |
+| Studente | studente2@example.com | Prova2 |
+| Studente | studente3@example.com | Prova3 |
 
 ## API principali
 

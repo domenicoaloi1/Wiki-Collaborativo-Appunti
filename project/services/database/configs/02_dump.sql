@@ -7,10 +7,10 @@
 -- admin -> Vector!   studenti -> Prova1 / Prova2 / Prova3
 
 INSERT INTO utenti (id, email, password, ruolo) VALUES 
-(1, 'admin@unipr.it', '$2y$10$WBqxw1/9OaCbScqI5YD3LuuSFXAn0lXXbwf2/Ayznh0lRJOJLkQEW', 'amministratore'),
-(2, 'studente_test1@studenti.unipr.it', '$2y$10$.3dCAFFgvqNWdAqwzrHMoOEUt3RXTSFiaRhlcRvcZs48CyViM60Fe', 'studente'),
-(3, 'studente_test2@studenti.unipr.it', '$2y$10$XYNoOz.EDCcecTh6/2n8uOMiylQOHKN6Aqt0ultEgtYgCRK1BzBhe', 'studente'),
-(4, 'studente_test3@studenti.unipr.it', '$2y$10$H/3V3jT526OHUiK7BugHK.fUozqbHNfILohRDBWrYFvXA4SYj9gN2', 'studente')
+(1, 'admin@example.com', '$2y$10$WBqxw1/9OaCbScqI5YD3LuuSFXAn0lXXbwf2/Ayznh0lRJOJLkQEW', 'amministratore'),
+(2, 'studente1@example.com', '$2y$10$.3dCAFFgvqNWdAqwzrHMoOEUt3RXTSFiaRhlcRvcZs48CyViM60Fe', 'studente'),
+(3, 'studente2@example.com', '$2y$10$XYNoOz.EDCcecTh6/2n8uOMiylQOHKN6Aqt0ultEgtYgCRK1BzBhe', 'studente'),
+(4, 'studente3@example.com', '$2y$10$H/3V3jT526OHUiK7BugHK.fUozqbHNfILohRDBWrYFvXA4SYj9gN2', 'studente')
 ON DUPLICATE KEY UPDATE password = VALUES(password);
 
 -- Corsi

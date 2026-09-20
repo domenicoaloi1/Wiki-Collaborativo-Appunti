@@ -70,7 +70,7 @@ jobs:
         run: |
           code=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
             -H 'Content-Type: application/json' \
-            -d '{"email":"studente_test1@studenti.unipr.it","password":"sbagliata"}' \
+            -d '{"email":"studente1@example.com","password":"sbagliata"}' \
             http://localhost:8000/login)
           echo "HTTP $code"
           test "$code" = "401"
@@ -79,7 +79,7 @@ jobs:
         run: |
           code=$(curl -s -c cookies.txt -o /dev/null -w '%{http_code}' -X POST \
             -H 'Content-Type: application/json' \
-            -d '{"email":"studente_test1@studenti.unipr.it","password":"Prova1"}' \
+            -d '{"email":"studente1@example.com","password":"Prova1"}' \
             http://localhost:8000/login)
           echo "login: HTTP $code"
           test "$code" = "200"

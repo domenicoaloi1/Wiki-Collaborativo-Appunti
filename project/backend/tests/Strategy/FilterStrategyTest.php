@@ -24,12 +24,12 @@ class FilterStrategyTest extends TestCase {
     }
 
     public function testEmailFilterProducesEqualityOnEmail(): void {
-        $criteria = $this->criteriaOf(new EmailFilter('admin@unipr.it'));
+        $criteria = $this->criteriaOf(new EmailFilter('admin@example.com'));
 
         $this->assertCount(1, $criteria);
         $this->assertSame('email', $criteria[0]->getField());
         $this->assertSame('=', $criteria[0]->getOperator());
-        $this->assertSame('admin@unipr.it', $criteria[0]->getValue());
+        $this->assertSame('admin@example.com', $criteria[0]->getValue());
     }
 
     public function testSearchFilterWrapsTrimmedTermInWildcards(): void {
