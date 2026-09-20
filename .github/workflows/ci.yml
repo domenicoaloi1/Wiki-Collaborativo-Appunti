@@ -1,10 +1,12 @@
 # CI: lint PHP, test unitari PHPUnit e smoke test dell'applicazione su Docker Compose.
-# Gira a ogni push e PR. Lint e test non hanno bisogno del DB; lo smoke avvia
-# l'intero stack (db, backend, frontend) come fa run_project.sh e interroga l'API.
+# Gira sulle PR e sui push a main (un solo run per commit: i branch di lavoro
+# vengono testati tramite la PR). Lint e test non hanno bisogno del DB; lo smoke
+# avvia l'intero stack (db, backend, frontend) come fa run_project.sh e interroga l'API.
 name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 jobs:
