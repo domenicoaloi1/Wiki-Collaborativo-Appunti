@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Avvio Wiki UNIPR..."
+echo "Avvio Wiki Appunti..."
 
 # Percorso di storage per il backend
 STORAGE_PATH="project/backend/storage/notes"

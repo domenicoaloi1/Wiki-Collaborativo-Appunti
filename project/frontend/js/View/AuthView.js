@@ -45,7 +45,7 @@ class AuthView extends BaseView {
 
     renderRegisterForm(onSubmit) {
         this._renderFormCard("Crea un Account", "register-form", [
-            { label: "Email Universitaria", id: "reg-email", type: "email", placeholder: "nome@studenti.unipr.it" },
+            { label: "Email", id: "reg-email", type: "email", placeholder: "nome@esempio.it" },
             { label: "Password", id: "reg-password", type: "password" }
         ], "Registrati", "btn-success", onSubmit);
     }

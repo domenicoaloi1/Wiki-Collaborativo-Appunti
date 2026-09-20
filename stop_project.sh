@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Arresto Wiki UNIPR..."
+echo "Arresto Wiki Appunti..."
 
 if [ -d "project" ]; then
     cd project
