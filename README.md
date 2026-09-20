@@ -1,5 +1,7 @@
 # Wiki Collaborativo Appunti
 
+[![CI](https://github.com/domenicoaloi1/Wiki-Collaborativo-Appunti/actions/workflows/ci.yml/badge.svg)](https://github.com/domenicoaloi1/Wiki-Collaborativo-Appunti/actions/workflows/ci.yml)
+
 > *A collaborative wiki for sharing and versioning university lecture notes, written in plain PHP 8 and vanilla JavaScript with no frameworks, so that the design patterns (Table Data Gateway, Protection Proxy, Strategy, Memento, MVP) stay visible in the code. Built as a Software Engineering exam project at the University of Parma, then hardened after submission. Runs with a single Docker Compose command. Documentation is in Italian.*
 
 Applicazione web per condividere, modificare e versionare appunti universitari, organizzati per corso e argomento. Ogni salvataggio genera una nuova versione consultabile e ripristinabile dalla cronologia.
@@ -23,6 +25,7 @@ Nato come progetto d'esame di Ingegneria del Software (Università di Parma), re
 | Database | MySQL 8 (metadati) + file system (contenuto Markdown degli appunti e delle versioni) |
 | Deploy | Docker Compose: `frontend` (httpd), `backend` (php:apache), `db` (mysql) |
 | Test | PHPUnit 10, eseguito in container |
+| CI | GitHub Actions: lint PHP 8.2/8.3, PHPUnit, smoke test dell'API su Docker Compose (`.github/workflows/ci.yml`) |
 
 ## Architettura e pattern
 
