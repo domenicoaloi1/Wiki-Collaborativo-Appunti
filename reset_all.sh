@@ -21,7 +21,8 @@ if [ -d "project" ]; then
     
     # 4. Ricostruzione e avvio
     cd project
-    docker compose build --no-cache
+    # --pull: anche la base PHP va riscaricata, --no-cache da solo riusa quella in cache
+    docker compose build --pull --no-cache
     # --wait: torna solo quando db e' healthy (healthcheck nel compose) e il backend e' partito
     docker compose up -d --wait
 	

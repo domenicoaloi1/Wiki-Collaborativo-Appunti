@@ -61,8 +61,11 @@ fi
 
 # 5. Avvio
 cd project
+# --pull: scarica sempre l'ultima patch dell'immagine PHP invece di riusare quella in cache
+# (es. PHP2Shell, ottobre 2026: corretto con un aggiornamento di patch su tutti i rami supportati)
+docker compose build --pull || echo "Avviso: immagine PHP non aggiornata (offline?), uso quella in cache."
 # --wait: torna solo quando db e' healthy (healthcheck nel compose) e il backend e' partito
-docker compose up -d --build --wait
+docker compose up -d --wait
 
 echo ""
 echo "Servizi pronti:"
