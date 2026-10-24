@@ -21,11 +21,11 @@ Nato come progetto d'esame di Ingegneria del Software (Università di Parma), re
 | Livello | Tecnologia |
 | --- | --- |
 | Frontend | HTML, JavaScript vanilla (ES2015+), Bootstrap 5, Showdown (Markdown → HTML) |
-| Backend | PHP 8.2 puro, API REST JSON, sessioni PHP |
+| Backend | PHP 8.3 puro, API REST JSON, sessioni PHP |
 | Database | MySQL 8 (metadati) + file system (contenuto Markdown degli appunti e delle versioni) |
 | Deploy | Docker Compose: `frontend` (httpd), `backend` (php:apache), `db` (mysql) |
 | Test | PHPUnit 10, eseguito in container |
-| CI | GitHub Actions: lint PHP 8.2/8.3, PHPUnit, smoke test dell'API su Docker Compose (`.github/workflows/ci.yml`) |
+| CI | GitHub Actions: lint PHP 8.3/8.4, PHPUnit, smoke test dell'API su Docker Compose (`.github/workflows/ci.yml`) |
 
 ## Architettura e pattern
 
@@ -65,7 +65,9 @@ Requisiti: Docker (Desktop o Engine) e una shell Bash (Git Bash, WSL, macOS/Linu
 ./run_project.sh
 ```
 
-Lo script crea `project/.env` da `project/.env.example` se manca, prepara lo storage degli appunti e avvia i container.
+Lo script crea `project/.env` da `project/.env.example` se manca, prepara lo storage degli appunti e avvia i container. A ogni avvio scarica l'ultima patch dell'immagine PHP (`docker compose build --pull`, anche in `reset_all.sh`), così le correzioni di sicurezza di PHP arrivano senza toccare il Dockerfile. Un `docker compose up --build` lanciato a mano invece riusa l'immagine in cache.
+
+Le porte sono pubblicate solo su `127.0.0.1`: l'applicazione è raggiungibile da questo PC, non dalla rete locale.
 
 - Frontend: <http://localhost:8080>
 - Backend API: <http://localhost:8000>
@@ -114,6 +116,9 @@ Il progetto è stato sviluppato in poche settimane con l'obiettivo di superare l
 | Credenziali DB e origine CORS hardcoded nel codice e nel compose | Variabili in `project/.env` (non versionato) con template `.env.example` |
 | `debug.php` che esponeva la sessione, `mkdir 0777` | Rimossi / corretti |
 | Nessun test automatico (solo il piano di test black-box nella relazione) | Test PHPUnit su Strategy, composizione delle query e Protection Proxy |
+| Gli script di avvio riusavano l'immagine PHP in cache: in locale girava ancora PHP 8.2.34, vulnerabile a [PHP2Shell](https://bleepingcomputer.com/news/security/php-ships-emergency-patches-for-critical-php2shell-flaws) (CVE-2026-109618 e CVE-2026-109619, RCE non autenticata, ottobre 2026) | `build --pull` a ogni avvio: arriva sempre l'ultima patch del ramo (PHP2Shell è corretto da 8.2.35 / 8.3.36) |
+| PHP 8.2, senza patch di sicurezza dal 31/12/2026 | PHP 8.3 (supporto di sicurezza fino al 31/12/2027) |
+| Porte di backend e frontend aperte su tutta la rete locale | Pubblicate solo su `127.0.0.1` |
 
 Restano volutamente fuori scope le scelte architetturali (assenza di framework e di namespace, autoloader custom, storage su file) perché sono parte di quanto richiesto e valutato all'esame.
 
