@@ -51,6 +51,11 @@ jobs:
       - name: Avvio dello stack (attende db healthy)
         run: docker compose up -d --build --wait --wait-timeout 180
 
+      # Minimo da aggiornare a mano alla prossima CVE (PHP2Shell: corretto da 8.3.36)
+      - name: PHP del backend non vulnerabile
+        run: |
+          docker compose exec -T backend php -r 'echo PHP_VERSION, PHP_EOL; exit(version_compare(PHP_VERSION, "8.3.36", "<") ? 1 : 0);'
+
       - name: GET /corsi risponde con i corsi del dump
         run: |
           body=$(curl -sf http://localhost:8000/corsi)
