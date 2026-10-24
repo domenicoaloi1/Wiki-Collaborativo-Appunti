@@ -1,5 +1,7 @@
 # Dockerfile.be
-FROM php:8.2-apache
+# 8.3: la 8.2 esce dal supporto di sicurezza il 31/12/2026.
+# Tag senza patch fissa: si aggiorna solo se la build riscarica la base (build --pull).
+FROM php:8.3-apache
 
 # Installazione estensioni PDO per MySQL
 RUN docker-php-ext-install pdo pdo_mysql

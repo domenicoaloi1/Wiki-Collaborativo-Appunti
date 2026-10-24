@@ -1,5 +1,5 @@
 #!/bin/bash
-# Esegue i test PHPUnit del backend dentro un container php:8.2-cli.
+# Esegue i test PHPUnit del backend dentro un container php:8.3-cli.
 # Non serve PHP installato in locale: basta Docker.
 # Uso: ./run_tests.sh [opzioni di phpunit, es. --filter Proxy]
 
@@ -25,4 +25,4 @@ if command -v cygpath >/dev/null 2>&1; then
 fi
 
 # 3. Esecuzione
-docker run --rm -v "$HOST_DIR:/app" -w /app php:8.2-cli php "$PHAR" "$@"
+docker run --rm -v "$HOST_DIR:/app" -w /app php:8.3-cli php "$PHAR" "$@"
